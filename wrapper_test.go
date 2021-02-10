@@ -1,22 +1,24 @@
 package wrapper
 
 import (
-	"log"
 	"testing"
 )
 
 func TestCommand(t *testing.T) {
-	w := NewComposeWrapper()
-
-	file := "docker-compose-test.yml"
-	_, err := w.Up(file)
+	w, err := NewComposeWrapper("")
 	if err != nil {
-		log.Fatalln(err)
+		t.Fatal(err)
 	}
 
-	_, err = w.Down(file)
+	file := "docker-compose-test.yml"
+	_, err = w.Up(file, "", "", "")
 	if err != nil {
-		log.Fatalln(err)
+		t.Fatal(err)
+	}
+
+	_, err = w.Down(file, "", "")
+	if err != nil {
+		t.Fatal(err)
 	}
 
 }
