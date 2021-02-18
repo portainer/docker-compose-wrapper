@@ -19,28 +19,42 @@ func setup(t *testing.T) *ComposeWrapper {
 	return w
 }
 
-func TestCommand(t *testing.T) {
-	w := setup(t)
+func Test_UpAndDown(t *testing.T) {
 
-	file := "docker-compose-test.yml"
-	_, err := w.Up(file, "", "", "")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, err = w.Down(file, "", "")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-}
-
-const composeFile = `version: "3.9"
+	const composeFileContent = `version: "3.9"
 services:
   busybox:
     image: "alpine:latest"
     container_name: "compose_wrapper_test"`
-const composedContainerName = "compose_wrapper_test"
+	const composedContainerName = "compose_wrapper_test"
+
+	w := setup(t)
+
+	dir := os.TempDir()
+
+	filePath, err := createComposeFile(dir, composeFileContent)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := w.Up(filePath, "", "test1", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !containerExists(composedContainerName) {
+		t.Fatal("container should exist")
+	}
+
+	_, err = w.Down(filePath, "", "test1")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if containerExists(composedContainerName) {
+		t.Fatal("container should be removed")
+	}
+}
 
 type composeOptions struct {
 	filePath    string
@@ -69,34 +83,6 @@ func createEnvFile(dir, envFileContent string) (string, error) {
 func createComposeFile(dir, composeFileContent string) (string, error) {
 	return createFile(dir, "docmer-compose.yml", composeFileContent)
 }
-
-// func Test_UpAndDown(t *testing.T) {
-
-// 	stack, endpoint := setup(t)
-
-// 	w, err := NewComposeStackManager("", nil)
-// 	if err != nil {
-// 		t.Fatalf("Failed creating manager: %s", err)
-// 	}
-
-// 	err = w.Up(stack, endpoint)
-// 	if err != nil {
-// 		t.Fatalf("Error calling docker-compose up: %s", err)
-// 	}
-
-// 	if !containerExists(composedContainerName) {
-// 		t.Fatal("container should exist")
-// 	}
-
-// 	err = w.Down(stack, endpoint)
-// 	if err != nil {
-// 		t.Fatalf("Error calling docker-compose down: %s", err)
-// 	}
-
-// 	if containerExists(composedContainerName) {
-// 		t.Fatal("container should be removed")
-// 	}
-// }
 
 func containerExists(containerName string) bool {
 	cmd := exec.Command("docker", "ps", "-a", "-f", fmt.Sprintf("name=%s", containerName))
