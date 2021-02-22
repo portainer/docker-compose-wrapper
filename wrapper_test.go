@@ -37,7 +37,7 @@ services:
 		t.Fatal(err)
 	}
 
-	_, err := w.Up(filePath, "", "test1", "")
+	_, err = w.Up(filePath, "", "test1", "")
 	if err != nil {
 		t.Fatal(err)
 	}
