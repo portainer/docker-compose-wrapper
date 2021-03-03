@@ -1,4 +1,4 @@
-package wrapper
+package utils
 
 import (
 	"os/exec"
@@ -13,7 +13,8 @@ func osProgram(program string) string {
 	return program
 }
 
-func programPath(rootPath, program string) string {
+// ProgramPath returns the correct path per os
+func ProgramPath(rootPath, program string) string {
 	return path.Join(rootPath, osProgram(program))
 }
 
