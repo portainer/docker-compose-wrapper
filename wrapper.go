@@ -6,6 +6,11 @@ import (
 	"os/exec"
 )
 
+var (
+	// ErrBinaryNotFound is returned when docker-compose binary is not found
+	ErrBinaryNotFound = errors.New("docker-compose binary not found")
+)
+
 // ComposeWrapper provide a type for managing docker compose commands
 type ComposeWrapper struct {
 	binaryPath string
@@ -14,7 +19,7 @@ type ComposeWrapper struct {
 // NewComposeWrapper initializes a new ComposeWrapper service with local docker-compose binary.
 func NewComposeWrapper(binaryPath string) (*ComposeWrapper, error) {
 	if !IsBinaryPresent(programPath(binaryPath, "docker-compose")) {
-		return nil, errors.New("docker-compose binary not found")
+		return nil, ErrBinaryNotFound
 	}
 
 	return &ComposeWrapper{binaryPath: binaryPath}, nil
