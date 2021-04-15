@@ -3,8 +3,6 @@ package wrapper
 import (
 	"bytes"
 	"errors"
-	"fmt"
-	"os"
 	"os/exec"
 )
 
@@ -28,17 +26,17 @@ func NewComposeWrapper(binaryPath string) (*ComposeWrapper, error) {
 }
 
 // Up create and start containers
-func (wrapper *ComposeWrapper) Up(filePath, url, projectName, envFilePath, configPath string) ([]byte, error) {
-	return wrapper.Command(newUpCommand(filePath), url, projectName, envFilePath, configPath)
+func (wrapper *ComposeWrapper) Up(filePath, url, projectName, envFilePath string) ([]byte, error) {
+	return wrapper.Command(newUpCommand(filePath), url, projectName, envFilePath)
 }
 
 // Down stop and remove containers
 func (wrapper *ComposeWrapper) Down(filePath, url, projectName string) ([]byte, error) {
-	return wrapper.Command(newDownCommand(filePath), url, projectName, "", "")
+	return wrapper.Command(newDownCommand(filePath), url, projectName, "")
 }
 
 // Command exectue a docker-compose commanåd
-func (wrapper *ComposeWrapper) Command(command composeCommand, url, projectName, envFilePath, configPath string) ([]byte, error) {
+func (wrapper *ComposeWrapper) Command(command composeCommand, url, projectName, envFilePath string) ([]byte, error) {
 	program := programPath(wrapper.binaryPath, "docker-compose")
 
 	if projectName != "" {
@@ -55,12 +53,6 @@ func (wrapper *ComposeWrapper) Command(command composeCommand, url, projectName,
 
 	var stderr bytes.Buffer
 	cmd := exec.Command(program, command.ToArgs()...)
-
-	if configPath != "" {
-		cmd.Env = os.Environ()
-		cmd.Env = append(cmd.Env, fmt.Sprintf("DOCKER_CONFIG=%s", configPath))
-	}
-
 	cmd.Stderr = &stderr
 
 	output, err := cmd.Output()
