@@ -29,7 +29,7 @@ func Test_NewCommand_SingleFilePath(t *testing.T) {
 }
 
 func Test_NewCommand_MultiFilePaths(t *testing.T) {
-	cmd := newCommand([]string{"up", "-d"}, []string{"docker-compose.yml", "production.yml"})
+	cmd := newCommand([]string{"up", "-d"}, []string{"docker-compose.yml", "docker-compose.override.yml"})
 	expected := []string{"-f", "docker-compose.yml", "-f", "production.yml"}
 	if !reflect.DeepEqual(cmd.args, expected) {
 		t.Errorf("wrong output args, want: %v, got: %v", expected, cmd.args)
@@ -37,7 +37,7 @@ func Test_NewCommand_MultiFilePaths(t *testing.T) {
 }
 
 func Test_NewCommand_MultiFilePaths_WithSpaces(t *testing.T) {
-	cmd := newCommand([]string{"up", "-d"}, []string{" docker-compose.yml", "production.yml "})
+	cmd := newCommand([]string{"up", "-d"}, []string{" docker-compose.yml", "docker-compose.override.yml "})
 	expected := []string{"-f", "docker-compose.yml", "-f", "production.yml"}
 	if !reflect.DeepEqual(cmd.args, expected) {
 		t.Errorf("wrong output args, want: %v, got: %v", expected, cmd.args)
