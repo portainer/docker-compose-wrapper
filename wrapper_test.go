@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -17,6 +18,33 @@ func setup(t *testing.T) *ComposeWrapper {
 	}
 
 	return w
+}
+
+func Test_NewCommand_SingleFilePath(t *testing.T) {
+	filePaths := "docker-compose.yml"
+	cmd := newCommand([]string{"up", "-d"}, filePaths)
+	expected := []string{"-f", "docker-compose.yml"}
+	if !reflect.DeepEqual(cmd.args, expected) {
+		t.Errorf("wrong output args, want: %v, got: %v", expected, cmd.args)
+	}
+}
+
+func Test_NewCommand_MultiFilePaths(t *testing.T) {
+	filePaths := "docker-compose.yml,production.yml"
+	cmd := newCommand([]string{"up", "-d"}, filePaths)
+	expected := []string{"-f", "docker-compose.yml", "-f", "production.yml"}
+	if !reflect.DeepEqual(cmd.args, expected) {
+		t.Errorf("wrong output args, want: %v, got: %v", expected, cmd.args)
+	}
+}
+
+func Test_NewCommand_MultiFilePaths_WithSpaces(t *testing.T) {
+	filePaths := " docker-compose.yml, production.yml  "
+	cmd := newCommand([]string{"up", "-d"}, filePaths)
+	expected := []string{"-f", "docker-compose.yml", "-f", "production.yml"}
+	if !reflect.DeepEqual(cmd.args, expected) {
+		t.Errorf("wrong output args, want: %v, got: %v", expected, cmd.args)
+	}
 }
 
 func Test_UpAndDown(t *testing.T) {
@@ -37,7 +65,7 @@ services:
 		t.Fatal(err)
 	}
 
-	_, err = w.Up(filePath, "", "test1", "")
+	_, err = w.Up(filePath, "", "test1", "", "")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 var (
@@ -76,19 +77,25 @@ type composeCommand struct {
 	args    []string
 }
 
-func newCommand(command []string, filePath string) composeCommand {
+func newCommand(command []string, filePaths string) composeCommand {
+	pathList := strings.Split(strings.TrimSpace(filePaths), ",")
+	var args []string
+	for i := range pathList {
+		args = append(args, "-f")
+		args = append(args, strings.TrimSpace(pathList[i]))
+	}
 	return composeCommand{
-		args:    []string{"-f", filePath},
+		args:    args,
 		command: command,
 	}
 }
 
-func newUpCommand(filePath string) composeCommand {
-	return newCommand([]string{"up", "-d"}, filePath)
+func newUpCommand(filePaths string) composeCommand {
+	return newCommand([]string{"up", "-d"}, filePaths)
 }
 
-func newDownCommand(filePath string) composeCommand {
-	return newCommand([]string{"down", "--remove-orphans"}, filePath)
+func newDownCommand(filePaths string) composeCommand {
+	return newCommand([]string{"down", "--remove-orphans"}, filePaths)
 }
 
 func (command *composeCommand) WithProjectName(projectName string) {
