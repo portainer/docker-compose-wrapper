@@ -29,12 +29,12 @@ func NewComposeWrapper(binaryPath string) (*ComposeWrapper, error) {
 }
 
 // Up create and start containers
-func (wrapper *ComposeWrapper) Up(filePath, url, projectName, envFilePath, configPath string) ([]byte, error) {
+func (wrapper *ComposeWrapper) Up(filePath []string, url, projectName, envFilePath, configPath string) ([]byte, error) {
 	return wrapper.Command(newUpCommand(filePath), url, projectName, envFilePath, configPath)
 }
 
 // Down stop and remove containers
-func (wrapper *ComposeWrapper) Down(filePath, url, projectName string) ([]byte, error) {
+func (wrapper *ComposeWrapper) Down(filePath []string, url, projectName string) ([]byte, error) {
 	return wrapper.Command(newDownCommand(filePath), url, projectName, "", "")
 }
 
@@ -77,12 +77,11 @@ type composeCommand struct {
 	args    []string
 }
 
-func newCommand(command []string, filePaths string) composeCommand {
-	pathList := strings.Split(strings.TrimSpace(filePaths), ",")
+func newCommand(command []string, filePaths []string) composeCommand {
 	var args []string
-	for i := range pathList {
+	for i := range filePaths {
 		args = append(args, "-f")
-		args = append(args, strings.TrimSpace(pathList[i]))
+		args = append(args, strings.TrimSpace(filePaths[i]))
 	}
 	return composeCommand{
 		args:    args,
@@ -90,11 +89,11 @@ func newCommand(command []string, filePaths string) composeCommand {
 	}
 }
 
-func newUpCommand(filePaths string) composeCommand {
+func newUpCommand(filePaths []string) composeCommand {
 	return newCommand([]string{"up", "-d"}, filePaths)
 }
 
-func newDownCommand(filePaths string) composeCommand {
+func newDownCommand(filePaths []string) composeCommand {
 	return newCommand([]string{"down", "--remove-orphans"}, filePaths)
 }
 

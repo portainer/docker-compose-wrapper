@@ -21,8 +21,7 @@ func setup(t *testing.T) *ComposeWrapper {
 }
 
 func Test_NewCommand_SingleFilePath(t *testing.T) {
-	filePaths := "docker-compose.yml"
-	cmd := newCommand([]string{"up", "-d"}, filePaths)
+	cmd := newCommand([]string{"up", "-d"}, []string{"docker-compose.yml"})
 	expected := []string{"-f", "docker-compose.yml"}
 	if !reflect.DeepEqual(cmd.args, expected) {
 		t.Errorf("wrong output args, want: %v, got: %v", expected, cmd.args)
@@ -30,8 +29,7 @@ func Test_NewCommand_SingleFilePath(t *testing.T) {
 }
 
 func Test_NewCommand_MultiFilePaths(t *testing.T) {
-	filePaths := "docker-compose.yml,production.yml"
-	cmd := newCommand([]string{"up", "-d"}, filePaths)
+	cmd := newCommand([]string{"up", "-d"}, []string{"docker-compose.yml", "production.yml"})
 	expected := []string{"-f", "docker-compose.yml", "-f", "production.yml"}
 	if !reflect.DeepEqual(cmd.args, expected) {
 		t.Errorf("wrong output args, want: %v, got: %v", expected, cmd.args)
@@ -39,8 +37,7 @@ func Test_NewCommand_MultiFilePaths(t *testing.T) {
 }
 
 func Test_NewCommand_MultiFilePaths_WithSpaces(t *testing.T) {
-	filePaths := " docker-compose.yml, production.yml  "
-	cmd := newCommand([]string{"up", "-d"}, filePaths)
+	cmd := newCommand([]string{"up", "-d"}, []string{" docker-compose.yml", "production.yml "})
 	expected := []string{"-f", "docker-compose.yml", "-f", "production.yml"}
 	if !reflect.DeepEqual(cmd.args, expected) {
 		t.Errorf("wrong output args, want: %v, got: %v", expected, cmd.args)
@@ -65,7 +62,7 @@ services:
 		t.Fatal(err)
 	}
 
-	_, err = w.Up(filePath, "", "test1", "", "")
+	_, err = w.Up([]string{filePath}, "", "test1", "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,7 +71,7 @@ services:
 		t.Fatal("container should exist")
 	}
 
-	_, err = w.Down(filePath, "", "test1")
+	_, err = w.Down([]string{filePath}, "", "test1")
 	if err != nil {
 		t.Fatal(err)
 	}
