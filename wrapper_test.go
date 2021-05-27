@@ -90,7 +90,7 @@ services:
 	}
 
 	if containerExists(composeContainerName) {
-		t.Fatal("container should exist")
+		t.Fatal("container should be removed")
 	}
 }
 
