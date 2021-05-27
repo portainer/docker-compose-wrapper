@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -58,7 +57,6 @@ func (wrapper *ComposeWrapper) Command(command composeCommand, url, projectName,
 	var stderr bytes.Buffer
 	cmd := exec.Command(program, command.ToArgs()...)
 
-	log.Println(command.ToArgs())
 	if configPath != "" {
 		cmd.Env = os.Environ()
 		cmd.Env = append(cmd.Env, fmt.Sprintf("DOCKER_CONFIG=%s", configPath))
