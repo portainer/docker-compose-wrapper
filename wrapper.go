@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 var (
@@ -28,13 +29,13 @@ func NewComposeWrapper(binaryPath string) (*ComposeWrapper, error) {
 }
 
 // Up create and start containers
-func (wrapper *ComposeWrapper) Up(filePath, url, projectName, envFilePath, configPath string) ([]byte, error) {
-	return wrapper.Command(newUpCommand(filePath), url, projectName, envFilePath, configPath)
+func (wrapper *ComposeWrapper) Up(filePaths []string, url, projectName, envFilePath, configPath string) ([]byte, error) {
+	return wrapper.Command(newUpCommand(filePaths), url, projectName, envFilePath, configPath)
 }
 
 // Down stop and remove containers
-func (wrapper *ComposeWrapper) Down(filePath, url, projectName string) ([]byte, error) {
-	return wrapper.Command(newDownCommand(filePath), url, projectName, "", "")
+func (wrapper *ComposeWrapper) Down(filePaths []string, url, projectName string) ([]byte, error) {
+	return wrapper.Command(newDownCommand(filePaths), url, projectName, "", "")
 }
 
 // Command exectue a docker-compose commanåd
@@ -76,19 +77,24 @@ type composeCommand struct {
 	args    []string
 }
 
-func newCommand(command []string, filePath string) composeCommand {
+func newCommand(command []string, filePaths []string) composeCommand {
+	var args []string
+	for _, path := range filePaths {
+		args = append(args, "-f")
+		args = append(args, strings.TrimSpace(path))
+	}
 	return composeCommand{
-		args:    []string{"-f", filePath},
+		args:    args,
 		command: command,
 	}
 }
 
-func newUpCommand(filePath string) composeCommand {
-	return newCommand([]string{"up", "-d"}, filePath)
+func newUpCommand(filePaths []string) composeCommand {
+	return newCommand([]string{"up", "-d"}, filePaths)
 }
 
-func newDownCommand(filePath string) composeCommand {
-	return newCommand([]string{"down", "--remove-orphans"}, filePath)
+func newDownCommand(filePaths []string) composeCommand {
+	return newCommand([]string{"down", "--remove-orphans"}, filePaths)
 }
 
 func (command *composeCommand) WithProjectName(projectName string) {

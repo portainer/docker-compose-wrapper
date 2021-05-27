@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -19,39 +20,76 @@ func setup(t *testing.T) *ComposeWrapper {
 	return w
 }
 
+func Test_NewCommand_SingleFilePath(t *testing.T) {
+	cmd := newCommand([]string{"up", "-d"}, []string{"docker-compose.yml"})
+	expected := []string{"-f", "docker-compose.yml"}
+	if !reflect.DeepEqual(cmd.args, expected) {
+		t.Errorf("wrong output args, want: %v, got: %v", expected, cmd.args)
+	}
+}
+
+func Test_NewCommand_MultiFilePaths(t *testing.T) {
+	cmd := newCommand([]string{"up", "-d"}, []string{"docker-compose.yml", "docker-compose-override.yml"})
+	expected := []string{"-f", "docker-compose.yml", "-f", "docker-compose-override.yml"}
+	if !reflect.DeepEqual(cmd.args, expected) {
+		t.Errorf("wrong output args, want: %v, got: %v", expected, cmd.args)
+	}
+}
+
+func Test_NewCommand_MultiFilePaths_WithSpaces(t *testing.T) {
+	cmd := newCommand([]string{"up", "-d"}, []string{" docker-compose.yml", "docker-compose-override.yml "})
+	expected := []string{"-f", "docker-compose.yml", "-f", "docker-compose-override.yml"}
+	if !reflect.DeepEqual(cmd.args, expected) {
+		t.Errorf("wrong output args, want: %v, got: %v", expected, cmd.args)
+	}
+}
+
 func Test_UpAndDown(t *testing.T) {
 
 	const composeFileContent = `version: "3.9"
 services:
   busybox:
+    image: "alpine:3.7"
+    container_name: "test_container_one"`
+
+	const overrideComposeFileContent = `version: "3.9"
+services:
+  busybox:
     image: "alpine:latest"
-    container_name: "compose_wrapper_test"`
-	const composedContainerName = "compose_wrapper_test"
+    container_name: "test_container_two"`
+
+	const composeContainerName = "test_container_two"
 
 	w := setup(t)
 
 	dir := os.TempDir()
+	defer os.RemoveAll(dir)
 
-	filePath, err := createComposeFile(dir, composeFileContent)
+	filePathOriginal, err := createFile(dir, "docker-compose.yml", composeFileContent)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = w.Up(filePath, "", "test1", "")
+	filePathOverride, err := createFile(dir, "docker-compose-override.yml", overrideComposeFileContent)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if !containerExists(composedContainerName) {
+	_, err = w.Up([]string{filePathOriginal, filePathOverride}, "", "test1", "", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !containerExists(composeContainerName) {
 		t.Fatal("container should exist")
 	}
 
-	_, err = w.Down(filePath, "", "test1")
+	_, err = w.Down([]string{filePathOriginal, filePathOverride}, "", "test1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if containerExists(composedContainerName) {
+	if containerExists(composeContainerName) {
 		t.Fatal("container should be removed")
 	}
 }

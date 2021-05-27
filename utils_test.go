@@ -11,12 +11,12 @@ func TestIsBinaryPresent(t *testing.T) {
 		Expected bool
 	}
 	testCases := []testCase{
-		testCase{
+		{
 			Name:     "not existing",
 			Binary:   "qwgq-er-gerw",
 			Expected: false,
 		},
-		testCase{
+		{
 			Name:     "docker-compose exists",
 			Binary:   "docker-compose",
 			Expected: true,
