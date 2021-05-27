@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -29,13 +30,13 @@ func NewComposeWrapper(binaryPath string) (*ComposeWrapper, error) {
 }
 
 // Up create and start containers
-func (wrapper *ComposeWrapper) Up(filePath []string, url, projectName, envFilePath, configPath string) ([]byte, error) {
-	return wrapper.Command(newUpCommand(filePath), url, projectName, envFilePath, configPath)
+func (wrapper *ComposeWrapper) Up(filePaths []string, url, projectName, envFilePath, configPath string) ([]byte, error) {
+	return wrapper.Command(newUpCommand(filePaths), url, projectName, envFilePath, configPath)
 }
 
 // Down stop and remove containers
-func (wrapper *ComposeWrapper) Down(filePath []string, url, projectName string) ([]byte, error) {
-	return wrapper.Command(newDownCommand(filePath), url, projectName, "", "")
+func (wrapper *ComposeWrapper) Down(filePaths []string, url, projectName string) ([]byte, error) {
+	return wrapper.Command(newDownCommand(filePaths), url, projectName, "", "")
 }
 
 // Command exectue a docker-compose commanåd
@@ -57,6 +58,7 @@ func (wrapper *ComposeWrapper) Command(command composeCommand, url, projectName,
 	var stderr bytes.Buffer
 	cmd := exec.Command(program, command.ToArgs()...)
 
+	log.Println(command.ToArgs())
 	if configPath != "" {
 		cmd.Env = os.Environ()
 		cmd.Env = append(cmd.Env, fmt.Sprintf("DOCKER_CONFIG=%s", configPath))
@@ -79,9 +81,9 @@ type composeCommand struct {
 
 func newCommand(command []string, filePaths []string) composeCommand {
 	var args []string
-	for i := range filePaths {
+	for _, path := range filePaths {
 		args = append(args, "-f")
-		args = append(args, strings.TrimSpace(filePaths[i]))
+		args = append(args, strings.TrimSpace(path))
 	}
 	return composeCommand{
 		args:    args,
