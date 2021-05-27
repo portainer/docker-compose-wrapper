@@ -63,6 +63,7 @@ services:
 	w := setup(t)
 
 	dir := os.TempDir()
+	defer os.RemoveAll(dir)
 
 	filePathOriginal, err := createFile(dir, "docker-compose.yml", composeFileContent)
 	if err != nil {
