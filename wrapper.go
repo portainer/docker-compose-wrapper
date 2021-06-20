@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
+	"path"
 	"strings"
 )
 
@@ -16,16 +18,27 @@ var (
 
 // ComposeWrapper provide a type for managing docker compose commands
 type ComposeWrapper struct {
-	binaryPath string
+	binaryPath       string
+	useComposePlugin bool
 }
 
 // NewComposeWrapper initializes a new ComposeWrapper service with local docker-compose binary.
 func NewComposeWrapper(binaryPath string) (*ComposeWrapper, error) {
-	if !IsBinaryPresent(programPath(binaryPath, "docker-compose")) {
-		return nil, ErrBinaryNotFound
+	dockerBinary := programPath(binaryPath, "docker")
+
+	cliPluginsPath := path.Join(binaryPath, ".docker", "cli-plugins")
+	composePlugin := programPath(cliPluginsPath, "docker-compose")
+
+	usePlugins := IsBinaryPresent(dockerBinary) && IsBinaryPresent(composePlugin)
+	if !usePlugins {
+		program := programPath(binaryPath, "docker-compose")
+
+		if !IsBinaryPresent(program) {
+			return nil, ErrBinaryNotFound
+		}
 	}
 
-	return &ComposeWrapper{binaryPath: binaryPath}, nil
+	return &ComposeWrapper{binaryPath: binaryPath, useComposePlugin: usePlugins}, nil
 }
 
 // Up create and start containers
@@ -40,8 +53,6 @@ func (wrapper *ComposeWrapper) Down(filePaths []string, url, projectName string)
 
 // Command exectue a docker-compose commanåd
 func (wrapper *ComposeWrapper) Command(command composeCommand, url, projectName, envFilePath, configPath string) ([]byte, error) {
-	program := programPath(wrapper.binaryPath, "docker-compose")
-
 	if projectName != "" {
 		command.WithProjectName(projectName)
 	}
@@ -54,14 +65,22 @@ func (wrapper *ComposeWrapper) Command(command composeCommand, url, projectName,
 		command.WithURL(url)
 	}
 
-	var stderr bytes.Buffer
-	cmd := exec.Command(program, command.ToArgs()...)
+	program := programPath(wrapper.binaryPath, "docker-compose")
+	args := command.ToArgs()
+	if wrapper.useComposePlugin {
+		log.Print("[DEBUG] [docker-compose-wrapper] [message: running docker with compose cli plugin]")
+		program = programPath(wrapper.binaryPath, "docker")
+		args = append([]string{"--config", path.Join(wrapper.binaryPath, ".docker"), "compose"}, args...)
+	}
 
-	if configPath != "" {
+	cmd := exec.Command(program, args...)
+
+	if configPath != "" && !wrapper.useComposePlugin {
 		cmd.Env = os.Environ()
 		cmd.Env = append(cmd.Env, fmt.Sprintf("DOCKER_CONFIG=%s", configPath))
 	}
 
+	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 
 	output, err := cmd.Output()
@@ -79,10 +98,11 @@ type composeCommand struct {
 
 func newCommand(command []string, filePaths []string) composeCommand {
 	var args []string
+
 	for _, path := range filePaths {
-		args = append(args, "-f")
-		args = append(args, strings.TrimSpace(path))
+		args = append(args, "-f", strings.TrimSpace(path))
 	}
+
 	return composeCommand{
 		args:    args,
 		command: command,
