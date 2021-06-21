@@ -12,7 +12,7 @@ import (
 )
 
 func setup(t *testing.T) *ComposeWrapper {
-	w, err := NewComposeWrapper("")
+	w, err := NewComposeWrapper("", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -75,7 +75,7 @@ services:
 		t.Fatal(err)
 	}
 
-	_, err = w.Up([]string{filePathOriginal, filePathOverride}, "", "test1", "", "")
+	_, err = w.Up([]string{filePathOriginal, filePathOverride}, "", "test1", "")
 	if err != nil {
 		t.Fatal(err)
 	}
