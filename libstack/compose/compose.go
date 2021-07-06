@@ -13,39 +13,39 @@ import (
 	"github.com/docker/compose-cli/pkg/compose"
 )
 
-// Up create and start containers
-func Up(filePaths []string, host, projectName, envFilePath string) ([]byte, error) {
+// Up creates and starts containers
+func Up(filePaths []string, host, projectName, envFilePath string) error {
 	service, err := prepareService(host)
 	if err != nil {
-		return nil, fmt.Errorf("failed creating compose service: %w", err)
+		return fmt.Errorf("failed creating compose service: %w", err)
 	}
 
 	project, err := prepareProject(filePaths, projectName, envFilePath)
 	if err != nil {
-		return nil, fmt.Errorf("failed preparing project: %w", err)
+		return fmt.Errorf("failed preparing project: %w", err)
 	}
 
 	err = service.Up(context.Background(), project, api.UpOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("failed deploying: %w", err)
+		return fmt.Errorf("failed deploying: %w", err)
 	}
 
-	return []byte{}, nil
+	return nil
 }
 
-// Down stop and remove containers
-func Down(filePaths []string, host, projectName string) ([]byte, error) {
+// Down stops and removes containers
+func Down(filePaths []string, host, projectName string) error {
 	service, err := prepareService(host)
 	if err != nil {
-		return nil, fmt.Errorf("failed creating compose service: %w", err)
+		return fmt.Errorf("failed creating compose service: %w", err)
 	}
 
 	err = service.Down(context.Background(), projectName, api.DownOptions{RemoveOrphans: true})
 	if err != nil {
-		return nil, fmt.Errorf("failed removing: %w", err)
+		return fmt.Errorf("failed removing: %w", err)
 	}
 
-	return []byte{}, nil
+	return nil
 }
 
 func prepareService(host string) (api.Service, error) {

@@ -41,7 +41,7 @@ services:
 		t.Fatal(err)
 	}
 
-	_, err = compose.Up([]string{filePathOriginal, filePathOverride}, "", "test1", "")
+	err = compose.Up([]string{filePathOriginal, filePathOverride}, "", "test1", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,7 +50,7 @@ services:
 		t.Fatal("container should exist")
 	}
 
-	_, err = compose.Down([]string{filePathOriginal, filePathOverride}, "", "test1")
+	err = compose.Down([]string{filePathOriginal, filePathOverride}, "", "test1")
 	if err != nil {
 		t.Fatal(err)
 	}
