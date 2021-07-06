@@ -1,4 +1,4 @@
-package wrapper
+package composebinary
 
 import (
 	"os/exec"

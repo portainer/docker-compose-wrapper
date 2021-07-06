@@ -1,4 +1,4 @@
-package wrapper
+package composebinary
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 )
 
 func setup(t *testing.T) *ComposeWrapper {
-	w, err := NewComposeWrapper("")
+	w, err := NewComposeWrapper("", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -75,7 +75,7 @@ services:
 		t.Fatal(err)
 	}
 
-	_, err = w.Up([]string{filePathOriginal, filePathOverride}, "", "test1", "", "")
+	err = w.Deploy("test1", "", []string{filePathOriginal, filePathOverride}, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -84,7 +84,7 @@ services:
 		t.Fatal("container should exist")
 	}
 
-	_, err = w.Down([]string{filePathOriginal, filePathOverride}, "", "test1")
+	err = w.Remove("test1", "", []string{filePathOriginal, filePathOverride})
 	if err != nil {
 		t.Fatal(err)
 	}
