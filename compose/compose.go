@@ -11,14 +11,14 @@ import (
 	"github.com/docker/cli/cli/flags"
 	"github.com/docker/compose-cli/pkg/api"
 	"github.com/docker/compose-cli/pkg/compose"
-	"github.com/portainer/docker-compose-wrapper/libstack"
+	libstack "github.com/portainer/docker-compose-wrapper"
 )
 
 type ComposeDeployer struct {
 }
 
-func NewComposeDeployer() libstack.Deployer {
-	return &ComposeDeployer{}
+func NewComposeDeployer() (libstack.Deployer, error) {
+	return &ComposeDeployer{}, nil
 }
 
 // Up creates and starts containers

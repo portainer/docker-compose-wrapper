@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/portainer/docker-compose-wrapper/libstack/compose"
+	"github.com/portainer/docker-compose-wrapper/compose"
 )
 
 func Test_UpAndDown(t *testing.T) {
