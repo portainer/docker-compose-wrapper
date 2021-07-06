@@ -7,7 +7,6 @@ import (
 	"github.com/compose-spec/compose-go/cli"
 	"github.com/compose-spec/compose-go/types"
 	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/config/configfile"
 	"github.com/docker/cli/cli/flags"
 	"github.com/docker/compose-cli/pkg/api"
 	"github.com/docker/compose-cli/pkg/compose"
@@ -15,15 +14,16 @@ import (
 )
 
 type ComposeDeployer struct {
+	configPath string
 }
 
-func NewComposeDeployer() (libstack.Deployer, error) {
-	return &ComposeDeployer{}, nil
+func NewComposeDeployer(configPath string) (libstack.Deployer, error) {
+	return &ComposeDeployer{configPath}, nil
 }
 
 // Up creates and starts containers
 func (deployer *ComposeDeployer) Deploy(projectName, host string, filePaths []string, envFilePath string) error {
-	service, err := prepareService(host)
+	service, err := prepareService(host, deployer.configPath)
 	if err != nil {
 		return fmt.Errorf("failed creating compose service: %w", err)
 	}
@@ -43,7 +43,7 @@ func (deployer *ComposeDeployer) Deploy(projectName, host string, filePaths []st
 
 // Down stops and removes containers
 func (deployer *ComposeDeployer) Remove(projectName, host string, filePaths []string) error {
-	service, err := prepareService(host)
+	service, err := prepareService(host, deployer.configPath)
 	if err != nil {
 		return fmt.Errorf("failed creating compose service: %w", err)
 	}
@@ -56,7 +56,7 @@ func (deployer *ComposeDeployer) Remove(projectName, host string, filePaths []st
 	return nil
 }
 
-func prepareService(host string) (api.Service, error) {
+func prepareService(host, configPath string) (api.Service, error) {
 	// compose-go outputs to stdout/stderr anyway, there's no way to overwrite it for now.
 	dockercli, err := command.NewDockerCli(command.WithStandardStreams())
 	if err != nil {
@@ -65,7 +65,10 @@ func prepareService(host string) (api.Service, error) {
 
 	initOpts := flags.NewClientOptions()
 	if host != "" {
-		initOpts = &flags.ClientOptions{Common: &flags.CommonOptions{Hosts: []string{host}}}
+		initOpts.Common.Hosts = []string{host}
+	}
+	if configPath != "" {
+		initOpts.ConfigDir = configPath
 	}
 
 	err = dockercli.Initialize(initOpts)
@@ -73,7 +76,7 @@ func prepareService(host string) (api.Service, error) {
 		return nil, fmt.Errorf("error init client %w", err)
 	}
 
-	return compose.NewComposeService(dockercli.Client(), &configfile.ConfigFile{}), nil
+	return compose.NewComposeService(dockercli.Client(), dockercli.ConfigFile()), nil
 }
 
 func prepareProject(filePaths []string, projectName, envFilePath string) (*types.Project, error) {
