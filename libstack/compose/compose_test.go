@@ -13,6 +13,7 @@ import (
 )
 
 func Test_UpAndDown(t *testing.T) {
+	deployer := compose.NewComposeDeployer()
 
 	const composeFileContent = `version: "3.9"
 services:
@@ -41,7 +42,7 @@ services:
 		t.Fatal(err)
 	}
 
-	err = compose.Up([]string{filePathOriginal, filePathOverride}, "", "test1", "")
+	err = deployer.Deploy("test1", "", []string{filePathOriginal, filePathOverride}, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,7 +51,7 @@ services:
 		t.Fatal("container should exist")
 	}
 
-	err = compose.Down([]string{filePathOriginal, filePathOverride}, "", "test1")
+	err = deployer.Remove("test1", "", []string{filePathOriginal, filePathOverride})
 	if err != nil {
 		t.Fatal(err)
 	}

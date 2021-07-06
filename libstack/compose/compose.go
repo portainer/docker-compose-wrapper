@@ -11,10 +11,18 @@ import (
 	"github.com/docker/cli/cli/flags"
 	"github.com/docker/compose-cli/pkg/api"
 	"github.com/docker/compose-cli/pkg/compose"
+	"github.com/portainer/docker-compose-wrapper/libstack"
 )
 
+type ComposeDeployer struct {
+}
+
+func NewComposeDeployer() libstack.Deployer {
+	return &ComposeDeployer{}
+}
+
 // Up creates and starts containers
-func Up(filePaths []string, host, projectName, envFilePath string) error {
+func (deployer *ComposeDeployer) Deploy(projectName, host string, filePaths []string, envFilePath string) error {
 	service, err := prepareService(host)
 	if err != nil {
 		return fmt.Errorf("failed creating compose service: %w", err)
@@ -34,7 +42,7 @@ func Up(filePaths []string, host, projectName, envFilePath string) error {
 }
 
 // Down stops and removes containers
-func Down(filePaths []string, host, projectName string) error {
+func (deployer *ComposeDeployer) Remove(projectName, host string, filePaths []string) error {
 	service, err := prepareService(host)
 	if err != nil {
 		return fmt.Errorf("failed creating compose service: %w", err)
