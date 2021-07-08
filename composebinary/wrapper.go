@@ -2,12 +2,15 @@ package composebinary
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"strings"
+
+	libstack "github.com/portainer/docker-compose-wrapper"
 )
 
 var (
@@ -22,7 +25,7 @@ type ComposeWrapper struct {
 }
 
 // NewComposeWrapper initializes a new ComposeWrapper service with local docker-compose binary.
-func NewComposeWrapper(binaryPath, configPath string) (*ComposeWrapper, error) {
+func NewComposeWrapper(binaryPath, configPath string) (libstack.Deployer, error) {
 	if !IsBinaryPresent(programPath(binaryPath, "docker-compose")) {
 		return nil, ErrBinaryNotFound
 	}
@@ -31,7 +34,7 @@ func NewComposeWrapper(binaryPath, configPath string) (*ComposeWrapper, error) {
 }
 
 // Up create and start containers
-func (wrapper *ComposeWrapper) Deploy(projectName, host string, filePaths []string, envFilePath string) error {
+func (wrapper *ComposeWrapper) Deploy(ctx context.Context, host, projectName string, filePaths []string, envFilePath string) error {
 	output, err := wrapper.Command(newUpCommand(filePaths), host, projectName, envFilePath, wrapper.configPath)
 	if len(output) != 0 {
 		log.Printf("[libstack,composebinary] [message: finish deploying] [output: %s] [err: %s]", output, err)
@@ -41,7 +44,7 @@ func (wrapper *ComposeWrapper) Deploy(projectName, host string, filePaths []stri
 }
 
 // Down stop and remove containers
-func (wrapper *ComposeWrapper) Remove(projectName, host string, filePaths []string) error {
+func (wrapper *ComposeWrapper) Remove(ctx context.Context, host, projectName string, filePaths []string) error {
 	output, err := wrapper.Command(newDownCommand(filePaths), host, projectName, "", "")
 	if len(output) != 0 {
 		log.Printf("[libstack,composebinary] [message: finish deploying] [output: %s] [err: %s]", output, err)

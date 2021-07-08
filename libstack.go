@@ -1,6 +1,10 @@
 package libstack
 
+import (
+	"context"
+)
+
 type Deployer interface {
-	Deploy(projectName, host string, filePaths []string, envFilePath string) error
-	Remove(projectName, host string, filePaths []string) error
+	Deploy(ctx context.Context, host, projectName string, filePaths []string, envFilePath string) error
+	Remove(ctx context.Context, host, projectName string, filePaths []string) error
 }

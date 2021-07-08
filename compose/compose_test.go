@@ -1,6 +1,7 @@
 package compose_test
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -46,7 +47,9 @@ func Test_UpAndDown(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = deployer.Deploy("test1", "", []string{filePathOriginal, filePathOverride}, "")
+	ctx := context.Background()
+
+	err = deployer.Deploy(ctx, "", "test1", []string{filePathOriginal, filePathOverride}, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -55,7 +58,7 @@ func Test_UpAndDown(t *testing.T) {
 		t.Fatal("container should exist")
 	}
 
-	err = deployer.Remove("test1", "", []string{filePathOriginal, filePathOverride})
+	err = deployer.Remove(ctx, "", "test1", []string{filePathOriginal, filePathOverride})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -63,13 +66,6 @@ func Test_UpAndDown(t *testing.T) {
 	if containerExists(composeContainerName) {
 		t.Fatal("container should be removed")
 	}
-}
-
-type composeOptions struct {
-	filePath    string
-	url         string
-	envFile     string
-	projectName string
 }
 
 func createFile(dir, fileName, content string) (string, error) {
@@ -83,14 +79,6 @@ func createFile(dir, fileName, content string) (string, error) {
 	f.Close()
 
 	return filePath, nil
-}
-
-func createEnvFile(dir, envFileContent string) (string, error) {
-	return createFile(dir, "stack.env", envFileContent)
-}
-
-func createComposeFile(dir, composeFileContent string) (string, error) {
-	return createFile(dir, "docmer-compose.yml", composeFileContent)
 }
 
 func containerExists(containerName string) bool {

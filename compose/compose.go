@@ -22,7 +22,7 @@ func NewComposeDeployer(configPath string) (libstack.Deployer, error) {
 }
 
 // Up creates and starts containers
-func (deployer *ComposeDeployer) Deploy(projectName, host string, filePaths []string, envFilePath string) error {
+func (deployer *ComposeDeployer) Deploy(ctx context.Context, host, projectName string, filePaths []string, envFilePath string) error {
 	service, err := prepareService(host, deployer.configPath)
 	if err != nil {
 		return fmt.Errorf("failed creating compose service: %w", err)
@@ -33,7 +33,7 @@ func (deployer *ComposeDeployer) Deploy(projectName, host string, filePaths []st
 		return fmt.Errorf("failed preparing project: %w", err)
 	}
 
-	err = service.Up(context.Background(), project, api.UpOptions{})
+	err = service.Up(ctx, project, api.UpOptions{})
 	if err != nil {
 		return fmt.Errorf("failed deploying: %w", err)
 	}
@@ -42,13 +42,13 @@ func (deployer *ComposeDeployer) Deploy(projectName, host string, filePaths []st
 }
 
 // Down stops and removes containers
-func (deployer *ComposeDeployer) Remove(projectName, host string, filePaths []string) error {
+func (deployer *ComposeDeployer) Remove(ctx context.Context, host, projectName string, filePaths []string) error {
 	service, err := prepareService(host, deployer.configPath)
 	if err != nil {
 		return fmt.Errorf("failed creating compose service: %w", err)
 	}
 
-	err = service.Down(context.Background(), projectName, api.DownOptions{RemoveOrphans: true})
+	err = service.Down(ctx, projectName, api.DownOptions{RemoveOrphans: true})
 	if err != nil {
 		return fmt.Errorf("failed removing: %w", err)
 	}

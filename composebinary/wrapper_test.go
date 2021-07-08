@@ -1,6 +1,7 @@
 package composebinary
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -9,9 +10,11 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	libstack "github.com/portainer/docker-compose-wrapper"
 )
 
-func setup(t *testing.T) *ComposeWrapper {
+func setup(t *testing.T) libstack.Deployer {
 	w, err := NewComposeWrapper("", "")
 	if err != nil {
 		t.Fatal(err)
@@ -75,7 +78,8 @@ services:
 		t.Fatal(err)
 	}
 
-	err = w.Deploy("test1", "", []string{filePathOriginal, filePathOverride}, "")
+	ctx := context.Background()
+	err = w.Deploy(ctx, "", "test1", []string{filePathOriginal, filePathOverride}, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -84,7 +88,7 @@ services:
 		t.Fatal("container should exist")
 	}
 
-	err = w.Remove("test1", "", []string{filePathOriginal, filePathOverride})
+	err = w.Remove(ctx, "", "test1", []string{filePathOriginal, filePathOverride})
 	if err != nil {
 		t.Fatal(err)
 	}
