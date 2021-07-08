@@ -13,19 +13,23 @@ import (
 )
 
 func Test_UpAndDown(t *testing.T) {
-	deployer := compose.NewComposeDeployer()
+	deployer, _ := compose.NewComposeDeployer("")
 
-	const composeFileContent = `version: "3.9"
-services:
-  busybox:
-    image: "alpine:3.7"
-    container_name: "test_container_one"`
+	const composeFileContent = `
+    version: "3.9"
+    services:
+      busybox:
+        image: "alpine:3.7"
+        container_name: "test_container_one"
+    `
 
-	const overrideComposeFileContent = `version: "3.9"
-services:
-  busybox:
-    image: "alpine:latest"
-    container_name: "test_container_two"`
+	const overrideComposeFileContent = `
+    version: "3.9"
+    services:
+      busybox:
+        image: "alpine:latest"
+        container_name: "test_container_two"
+    `
 
 	const composeContainerName = "test_container_two"
 
