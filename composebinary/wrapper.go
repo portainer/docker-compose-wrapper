@@ -1,12 +1,16 @@
-package wrapper
+package composebinary
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"strings"
+
+	libstack "github.com/portainer/docker-compose-wrapper"
 )
 
 var (
@@ -17,25 +21,36 @@ var (
 // ComposeWrapper provide a type for managing docker compose commands
 type ComposeWrapper struct {
 	binaryPath string
+	configPath string
 }
 
 // NewComposeWrapper initializes a new ComposeWrapper service with local docker-compose binary.
-func NewComposeWrapper(binaryPath string) (*ComposeWrapper, error) {
+func NewComposeWrapper(binaryPath, configPath string) (libstack.Deployer, error) {
 	if !IsBinaryPresent(programPath(binaryPath, "docker-compose")) {
 		return nil, ErrBinaryNotFound
 	}
 
-	return &ComposeWrapper{binaryPath: binaryPath}, nil
+	return &ComposeWrapper{binaryPath: binaryPath, configPath: configPath}, nil
 }
 
 // Up create and start containers
-func (wrapper *ComposeWrapper) Up(filePaths []string, url, projectName, envFilePath, configPath string) ([]byte, error) {
-	return wrapper.Command(newUpCommand(filePaths), url, projectName, envFilePath, configPath)
+func (wrapper *ComposeWrapper) Deploy(ctx context.Context, host, projectName string, filePaths []string, envFilePath string) error {
+	output, err := wrapper.Command(newUpCommand(filePaths), host, projectName, envFilePath, wrapper.configPath)
+	if len(output) != 0 {
+		log.Printf("[libstack,composebinary] [message: finish deploying] [output: %s] [err: %s]", output, err)
+	}
+
+	return err
 }
 
 // Down stop and remove containers
-func (wrapper *ComposeWrapper) Down(filePaths []string, url, projectName string) ([]byte, error) {
-	return wrapper.Command(newDownCommand(filePaths), url, projectName, "", "")
+func (wrapper *ComposeWrapper) Remove(ctx context.Context, host, projectName string, filePaths []string) error {
+	output, err := wrapper.Command(newDownCommand(filePaths), host, projectName, "", "")
+	if len(output) != 0 {
+		log.Printf("[libstack,composebinary] [message: finish deploying] [output: %s] [err: %s]", output, err)
+	}
+
+	return err
 }
 
 // Command exectue a docker-compose commanåd
