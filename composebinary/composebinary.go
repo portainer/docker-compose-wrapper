@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	libstack "github.com/portainer/docker-compose-wrapper"
+	"github.com/portainer/docker-compose-wrapper/compose"
 )
 
 var (
@@ -22,6 +23,22 @@ var (
 type ComposeWrapper struct {
 	binaryPath string
 	configPath string
+}
+
+// NewDockerComposeDeployer will try to create a wrapper for docker-compose binary
+// if it's not availbale will use compose.Deployer
+func NewDockerComposeDeployer(binaryPath, configPath string) (libstack.Deployer, error) {
+	deployer, err := NewComposeWrapper(binaryPath, configPath)
+	if err == nil {
+		return deployer, nil
+	}
+
+	if err == ErrBinaryNotFound {
+		log.Printf("[INFO] [main,compose] [message: binary is missing, falling-back to compose library] [error: %s]", err)
+		return compose.NewComposeDeployer(configPath)
+	}
+
+	return nil, err
 }
 
 // NewComposeWrapper initializes a new ComposeWrapper service with local docker-compose binary.
