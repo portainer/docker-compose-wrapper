@@ -14,7 +14,7 @@ import (
 )
 
 func Test_UpAndDown(t *testing.T) {
-	deployer, _ := compose.NewComposeDeployer("")
+	deployer, _ := compose.NewComposeDeployer("", "")
 
 	const composeFileContent = `
     version: "3.9"

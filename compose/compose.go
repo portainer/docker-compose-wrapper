@@ -3,6 +3,7 @@ package compose
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/compose-spec/compose-go/cli"
 	"github.com/compose-spec/compose-go/types"
@@ -11,14 +12,27 @@ import (
 	"github.com/docker/compose-cli/pkg/api"
 	"github.com/docker/compose-cli/pkg/compose"
 	libstack "github.com/portainer/docker-compose-wrapper"
+	"github.com/portainer/docker-compose-wrapper/compose/internal/composebinary"
 )
 
 type ComposeDeployer struct {
 	configPath string
 }
 
-func NewComposeDeployer(configPath string) (libstack.Deployer, error) {
-	return &ComposeDeployer{configPath}, nil
+// NewComposeDeployer will try to create a wrapper for docker-compose binary
+// if it's not availbale will use compose.Deployer
+func NewComposeDeployer(binaryPath, configPath string) (libstack.Deployer, error) {
+	deployer, err := composebinary.NewComposeWrapper(binaryPath, configPath)
+	if err == nil {
+		return deployer, nil
+	}
+
+	if err == composebinary.ErrBinaryNotFound {
+		log.Printf("[INFO] [main,compose] [message: binary is missing, falling-back to compose library] [error: %s]", err)
+		return &ComposeDeployer{configPath: configPath}, nil
+	}
+
+	return nil, err
 }
 
 // Up creates and starts containers
