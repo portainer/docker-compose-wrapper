@@ -93,16 +93,16 @@ func (wrapper *PluginWrapper) command(command composeCommand, workingDir, url, p
 		command.WithEnvFilePath(envFilePath)
 	}
 
-	if url != "" {
-		command.WithURL(url)
-	}
-
 	var stderr bytes.Buffer
 
 	args := []string{}
 
 	if wrapper.configPath != "" {
 		args = append(args, "--config", wrapper.configPath)
+	}
+
+	if url != "" {
+		args = append(args, "-H", url)
 	}
 
 	args = append(args, "compose")
