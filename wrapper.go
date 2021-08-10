@@ -68,7 +68,7 @@ func (wrapper *ComposeWrapper) Command(command composeCommand, workingDir, host,
 
 	output, err := cmd.Output()
 	if err != nil {
-		return nil, errors.New(stderr.String())
+		return nil, errors.Wrap(err, stderr.String())
 	}
 
 	return output, nil
