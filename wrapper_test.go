@@ -75,7 +75,7 @@ services:
 		t.Fatal(err)
 	}
 
-	_, err = w.Up([]string{filePathOriginal, filePathOverride}, "", "test1", "", "")
+	_, err = w.Up([]string{filePathOriginal, filePathOverride}, "", "", "test1", "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -84,7 +84,7 @@ services:
 		t.Fatal("container should exist")
 	}
 
-	_, err = w.Down([]string{filePathOriginal, filePathOverride}, "", "test1")
+	_, err = w.Down([]string{filePathOriginal, filePathOverride}, "", "", "test1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -92,13 +92,6 @@ services:
 	if containerExists(composeContainerName) {
 		t.Fatal("container should be removed")
 	}
-}
-
-type composeOptions struct {
-	filePath    string
-	url         string
-	envFile     string
-	projectName string
 }
 
 func createFile(dir, fileName, content string) (string, error) {
@@ -112,14 +105,6 @@ func createFile(dir, fileName, content string) (string, error) {
 	f.Close()
 
 	return filePath, nil
-}
-
-func createEnvFile(dir, envFileContent string) (string, error) {
-	return createFile(dir, "stack.env", envFileContent)
-}
-
-func createComposeFile(dir, composeFileContent string) (string, error) {
-	return createFile(dir, "docmer-compose.yml", composeFileContent)
 }
 
 func containerExists(containerName string) bool {

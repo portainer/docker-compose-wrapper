@@ -2,11 +2,12 @@ package wrapper
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 var (
@@ -29,17 +30,17 @@ func NewComposeWrapper(binaryPath string) (*ComposeWrapper, error) {
 }
 
 // Up create and start containers
-func (wrapper *ComposeWrapper) Up(filePaths []string, url, projectName, envFilePath, configPath string) ([]byte, error) {
-	return wrapper.Command(newUpCommand(filePaths), url, projectName, envFilePath, configPath)
+func (wrapper *ComposeWrapper) Up(filePaths []string, projectDir, host, projectName, envFilePath, configPath string) ([]byte, error) {
+	return wrapper.Command(newUpCommand(filePaths), projectDir, host, projectName, envFilePath, configPath)
 }
 
 // Down stop and remove containers
-func (wrapper *ComposeWrapper) Down(filePaths []string, url, projectName string) ([]byte, error) {
-	return wrapper.Command(newDownCommand(filePaths), url, projectName, "", "")
+func (wrapper *ComposeWrapper) Down(filePaths []string, projectDir string, host, projectName string) ([]byte, error) {
+	return wrapper.Command(newDownCommand(filePaths), projectDir, host, projectName, "", "")
 }
 
 // Command exectue a docker-compose commanåd
-func (wrapper *ComposeWrapper) Command(command composeCommand, url, projectName, envFilePath, configPath string) ([]byte, error) {
+func (wrapper *ComposeWrapper) Command(command composeCommand, workingDir, host, projectName, envFilePath, configPath string) ([]byte, error) {
 	program := programPath(wrapper.binaryPath, "docker-compose")
 
 	if projectName != "" {
@@ -50,12 +51,13 @@ func (wrapper *ComposeWrapper) Command(command composeCommand, url, projectName,
 		command.WithEnvFilePath(envFilePath)
 	}
 
-	if url != "" {
-		command.WithURL(url)
+	if host != "" {
+		command.WithHost(host)
 	}
 
 	var stderr bytes.Buffer
 	cmd := exec.Command(program, command.ToArgs()...)
+	cmd.Dir = workingDir
 
 	if configPath != "" {
 		cmd.Env = os.Environ()
@@ -66,7 +68,7 @@ func (wrapper *ComposeWrapper) Command(command composeCommand, url, projectName,
 
 	output, err := cmd.Output()
 	if err != nil {
-		return nil, errors.New(stderr.String())
+		return nil, errors.Wrap(err, stderr.String())
 	}
 
 	return output, nil
@@ -105,8 +107,8 @@ func (command *composeCommand) WithEnvFilePath(envFilePath string) {
 	command.args = append(command.args, "--env-file", envFilePath)
 }
 
-func (command *composeCommand) WithURL(url string) {
-	command.args = append(command.args, "-H", url)
+func (command *composeCommand) WithHost(host string) {
+	command.args = append(command.args, "-H", host)
 }
 
 func (command *composeCommand) ToArgs() []string {
