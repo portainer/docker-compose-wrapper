@@ -31,9 +31,9 @@ func NewComposeWrapper(binaryPath, configPath string) (libstack.Deployer, error)
 	return &ComposeWrapper{binaryPath: binaryPath, configPath: configPath}, nil
 }
 
-// Up create and start containers
+// Deploy creates and starts containers
 func (wrapper *ComposeWrapper) Deploy(ctx context.Context, workingDir, host, projectName string, filePaths []string, envFilePath string) error {
-	output, err := wrapper.Command(newUpCommand(filePaths), workingDir, host, projectName, envFilePath, wrapper.configPath)
+	output, err := wrapper.Command(newUpCommand(filePaths), workingDir, host, projectName, envFilePath)
 	if len(output) != 0 {
 		log.Printf("[libstack,composebinary] [message: finish deploying] [output: %s] [err: %s]", output, err)
 	}
@@ -41,9 +41,9 @@ func (wrapper *ComposeWrapper) Deploy(ctx context.Context, workingDir, host, pro
 	return err
 }
 
-// Down stop and remove containers
+// Remove stops and removes containers
 func (wrapper *ComposeWrapper) Remove(ctx context.Context, workingDir, host, projectName string, filePaths []string) error {
-	output, err := wrapper.Command(newDownCommand(filePaths), workingDir, host, projectName, "", "")
+	output, err := wrapper.Command(newDownCommand(filePaths), workingDir, host, projectName, "")
 	if len(output) != 0 {
 		log.Printf("[libstack,composebinary] [message: finish deploying] [output: %s] [err: %s]", output, err)
 	}
@@ -51,8 +51,8 @@ func (wrapper *ComposeWrapper) Remove(ctx context.Context, workingDir, host, pro
 	return err
 }
 
-// Command exectue a docker-compose commanåd
-func (wrapper *ComposeWrapper) Command(command composeCommand, workingDir, host, projectName, envFilePath, configPath string) ([]byte, error) {
+// Command executes a docker-compose command
+func (wrapper *ComposeWrapper) Command(command composeCommand, workingDir, host, projectName, envFilePath string) ([]byte, error) {
 	program := utils.ProgramPath(wrapper.binaryPath, "docker-compose")
 
 	if projectName != "" {
@@ -71,9 +71,9 @@ func (wrapper *ComposeWrapper) Command(command composeCommand, workingDir, host,
 	cmd := exec.Command(program, command.ToArgs()...)
 	cmd.Dir = workingDir
 
-	if configPath != "" {
+	if wrapper.configPath != "" {
 		cmd.Env = os.Environ()
-		cmd.Env = append(cmd.Env, fmt.Sprintf("DOCKER_CONFIG=%s", configPath))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("DOCKER_CONFIG=%s", wrapper.configPath))
 	}
 
 	cmd.Stderr = &stderr
