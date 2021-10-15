@@ -104,7 +104,7 @@ func newCommand(command []string, filePaths []string) composeCommand {
 }
 
 func newUpCommand(filePaths []string) composeCommand {
-	return newCommand([]string{"up", "-d"}, filePaths)
+	return newCommand([]string{"up", "-d", "--force-recreate"}, filePaths)
 }
 
 func newDownCommand(filePaths []string) composeCommand {
