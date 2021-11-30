@@ -81,6 +81,17 @@ func (wrapper *PluginWrapper) Remove(ctx context.Context, workingDir, host, proj
 	return err
 }
 
+// Pull images
+func (wrapper *PluginWrapper) Pull(ctx context.Context, workingDir, host, projectName string, filePaths []string) error {
+	output, err := wrapper.command(newDownCommand(filePaths), workingDir, host, projectName, "")
+	if len(output) != 0 {
+		log.Printf("[libstack,composebinary] [message: finish deploying] [output: %s] [err: %s]", output, err)
+	}
+
+	return err
+}
+
+
 // Command exectue a docker-compose commanåd
 func (wrapper *PluginWrapper) command(command composeCommand, workingDir, url, projectName, envFilePath string) ([]byte, error) {
 	program := utils.ProgramPath(wrapper.binaryPath, "docker")
