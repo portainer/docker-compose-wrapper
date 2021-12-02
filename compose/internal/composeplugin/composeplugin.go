@@ -83,9 +83,9 @@ func (wrapper *PluginWrapper) Remove(ctx context.Context, workingDir, host, proj
 
 // Pull images
 func (wrapper *PluginWrapper) Pull(ctx context.Context, workingDir, host, projectName string, filePaths []string) error {
-	output, err := wrapper.command(newDownCommand(filePaths), workingDir, host, projectName, "")
+	output, err := wrapper.command(newPullCommand(filePaths), workingDir, host, projectName, "")
 	if len(output) != 0 {
-		log.Printf("[libstack,composebinary] [message: finish deploying] [output: %s] [err: %s]", output, err)
+		log.Printf("[libstack,composebinary] [message: finish pulling] [output: %s] [err: %s]", output, err)
 	}
 
 	return err
@@ -155,6 +155,10 @@ func newUpCommand(filePaths []string) composeCommand {
 
 func newDownCommand(filePaths []string) composeCommand {
 	return newCommand([]string{"down", "--remove-orphans"}, filePaths)
+}
+
+func newPullCommand(filePaths []string) composeCommand {
+	return newCommand([]string{"pull"}, filePaths)
 }
 
 func (command *composeCommand) WithConfigPath(configPath string) {
