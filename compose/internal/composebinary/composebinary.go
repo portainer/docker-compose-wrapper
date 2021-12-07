@@ -51,6 +51,17 @@ func (wrapper *ComposeWrapper) Remove(ctx context.Context, workingDir, host, pro
 	return err
 }
 
+// Pull an image associated with a service defined in a docker-compose.yml or docker-stack.yml file,
+// but does not start containers based on those images.
+func (wrapper *ComposeWrapper) Pull(ctx context.Context, workingDir, host, projectName string, filePaths []string) error {
+	output, err := wrapper.Command(newPullCommand(filePaths), workingDir, host, projectName, "")
+	if len(output) != 0 {
+		log.Printf("[libstack,composebinary] [message: finish deploying] [output: %s] [err: %s]", output, err)
+	}
+
+	return err
+}
+
 // Command executes a docker-compose command
 func (wrapper *ComposeWrapper) Command(command composeCommand, workingDir, host, projectName, envFilePath string) ([]byte, error) {
 	program := utils.ProgramPath(wrapper.binaryPath, "docker-compose")
@@ -109,6 +120,10 @@ func newUpCommand(filePaths []string) composeCommand {
 
 func newDownCommand(filePaths []string) composeCommand {
 	return newCommand([]string{"down", "--remove-orphans"}, filePaths)
+}
+
+func newPullCommand(filePaths []string) composeCommand {
+	return newCommand([]string{"pull"}, filePaths)
 }
 
 func (command *composeCommand) WithProjectName(projectName string) {
