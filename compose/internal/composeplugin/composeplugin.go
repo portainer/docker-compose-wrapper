@@ -148,6 +148,8 @@ func newCommand(command []string, filePaths []string) composeCommand {
 	}
 }
 
+//TO-DO: double check docker compose plugin logic
+//to see if it is necessary to implement forceRereate arg here
 func newUpCommand(filePaths []string, forceRereate bool) composeCommand {
 	return newCommand([]string{"up", "-d"}, filePaths)
 }
