@@ -32,8 +32,8 @@ func NewComposeWrapper(binaryPath, configPath string) (libstack.Deployer, error)
 }
 
 // Deploy creates and starts containers
-func (wrapper *ComposeWrapper) Deploy(ctx context.Context, workingDir, host, projectName string, filePaths []string, envFilePath string) error {
-	output, err := wrapper.Command(newUpCommand(filePaths), workingDir, host, projectName, envFilePath)
+func (wrapper *ComposeWrapper) Deploy(ctx context.Context, workingDir, host, projectName string, filePaths []string, envFilePath string, forceRereate bool) error {
+	output, err := wrapper.Command(newUpCommand(filePaths, forceRereate), workingDir, host, projectName, envFilePath)
 	if len(output) != 0 {
 		log.Printf("[libstack,composebinary] [message: finish deploying] [output: %s] [err: %s]", output, err)
 	}
@@ -114,8 +114,13 @@ func newCommand(command []string, filePaths []string) composeCommand {
 	}
 }
 
-func newUpCommand(filePaths []string) composeCommand {
-	return newCommand([]string{"up", "-d", "--force-recreate"}, filePaths)
+func newUpCommand(filePaths []string, forceRereate bool) composeCommand {
+	args := []string{"up", "-d"}
+	//set `--force-recreate` flag if forceRereate param is true
+	if forceRereate {
+		args = append(args, "--force-recreate")
+	}
+	return newCommand(args, filePaths)
 }
 
 func newDownCommand(filePaths []string) composeCommand {

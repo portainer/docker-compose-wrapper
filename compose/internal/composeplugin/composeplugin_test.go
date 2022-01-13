@@ -79,7 +79,7 @@ services:
 	}
 
 	ctx := context.Background()
-	err = w.Deploy(ctx, "", "", "test1", []string{filePathOriginal, filePathOverride}, "")
+	err = w.Deploy(ctx, "", "", "test1", []string{filePathOriginal, filePathOverride}, "", false)
 	if err != nil {
 		t.Fatal(err)
 	}
