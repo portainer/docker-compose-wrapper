@@ -49,7 +49,7 @@ func Test_UpAndDown(t *testing.T) {
 
 	ctx := context.Background()
 
-	err = deployer.Deploy(ctx, "", "", "test1", []string{filePathOriginal, filePathOverride}, "")
+	err = deployer.Deploy(ctx, "", "", "test1", []string{filePathOriginal, filePathOverride}, "", false)
 	if err != nil {
 		t.Fatal(err)
 	}

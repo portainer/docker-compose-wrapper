@@ -62,8 +62,8 @@ func NewPluginWrapper(binaryPath, configPath string) (libstack.Deployer, error) 
 }
 
 // Up create and start containers
-func (wrapper *PluginWrapper) Deploy(ctx context.Context, workingDir, host, projectName string, filePaths []string, envFilePath string) error {
-	output, err := wrapper.command(newUpCommand(filePaths), workingDir, host, projectName, envFilePath)
+func (wrapper *PluginWrapper) Deploy(ctx context.Context, workingDir, host, projectName string, filePaths []string, envFilePath string, forceRereate bool) error {
+	output, err := wrapper.command(newUpCommand(filePaths, forceRereate), workingDir, host, projectName, envFilePath)
 	if len(output) != 0 {
 		log.Printf("[libstack,composebinary] [message: finish deploying] [output: %s] [err: %s]", output, err)
 	}
@@ -90,7 +90,6 @@ func (wrapper *PluginWrapper) Pull(ctx context.Context, workingDir, host, projec
 
 	return err
 }
-
 
 // Command exectue a docker-compose commanåd
 func (wrapper *PluginWrapper) command(command composeCommand, workingDir, url, projectName, envFilePath string) ([]byte, error) {
@@ -149,7 +148,7 @@ func newCommand(command []string, filePaths []string) composeCommand {
 	}
 }
 
-func newUpCommand(filePaths []string) composeCommand {
+func newUpCommand(filePaths []string, forceRereate bool) composeCommand {
 	return newCommand([]string{"up", "-d"}, filePaths)
 }
 
