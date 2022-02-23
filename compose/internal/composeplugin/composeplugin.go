@@ -54,10 +54,8 @@ func NewPluginWrapper(binaryPath, configPath string) (libstack.Deployer, error) 
 		if err != nil {
 			return nil, err
 		}
-	} else {
-		if !utils.IsBinaryPresent(utils.ProgramPath(dockerPluginsPath, "docker-compose")) {
-			return nil, MissingDockerComposePluginErr
-		}
+	} else if !utils.IsBinaryPresent(utils.ProgramPath(dockerPluginsPath, "docker-compose")) {
+		return nil, MissingDockerComposePluginErr
 	}
 
 	return &PluginWrapper{binaryPath: binaryPath, configPath: configPath}, nil
