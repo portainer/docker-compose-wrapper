@@ -45,3 +45,16 @@ func Copy(sourcePath, destinationPath string) error {
 
 	return nil
 }
+
+// Move sourcePath to destinationPath
+func Move(sourcePath, destinationPath string) error {
+	if err := Copy(sourcePath, destinationPath); err != nil {
+		return err
+	}
+
+	if err := os.Remove(sourcePath); err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -40,22 +40,22 @@ func NewPluginWrapper(binaryPath, configPath string) (libstack.Deployer, error) 
 	}
 
 	dockerPluginsPath := path.Join(configPath, "cli-plugins")
-	if !utils.IsBinaryPresent(utils.ProgramPath(dockerPluginsPath, "docker-compose")) {
-		pluginPath := utils.ProgramPath(binaryPath, "docker-compose.plugin")
-		if !utils.IsBinaryPresent(pluginPath) {
-			return nil, MissingDockerComposePluginErr
+	pluginPath := utils.ProgramPath(binaryPath, "docker-compose.plugin")
+
+	if utils.IsBinaryPresent(pluginPath) {
+		if !utils.IsBinaryPresent(utils.ProgramPath(dockerPluginsPath, "docker-compose")) {
+			err := os.MkdirAll(dockerPluginsPath, 0755)
+			if err != nil {
+				return nil, errors.WithMessage(err, "failed creating plugins path")
+			}
 		}
 
-		err := os.MkdirAll(dockerPluginsPath, 0755)
-		if err != nil {
-			return nil, errors.WithMessage(err, "failed creating plugins path")
-		}
-
-		err = utils.Copy(pluginPath, utils.ProgramPath(dockerPluginsPath, "docker-compose"))
+		err := utils.Move(pluginPath, utils.ProgramPath(dockerPluginsPath, "docker-compose"))
 		if err != nil {
 			return nil, err
 		}
-
+	} else if !utils.IsBinaryPresent(utils.ProgramPath(dockerPluginsPath, "docker-compose")) {
+		return nil, MissingDockerComposePluginErr
 	}
 
 	return &PluginWrapper{binaryPath: binaryPath, configPath: configPath}, nil
