@@ -3,6 +3,7 @@ package composeplugin
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -16,7 +17,7 @@ import (
 )
 
 var (
-	MissingDockerComposePluginErr = errors.New("docker-compose plugin is missing from config path")
+	MissingDockerComposePluginErr = errors.New("docker compose plugin is missing from config path")
 )
 
 // PluginWrapper provide a type for managing docker compose commands
@@ -25,7 +26,7 @@ type PluginWrapper struct {
 	configPath string
 }
 
-// NewPluginWrapper initializes a new ComposeWrapper service with local docker-compose binary.
+// NewPluginWrapper initializes a new ComposeWrapper service with local docker binary.
 func NewPluginWrapper(binaryPath, configPath string) (libstack.Deployer, error) {
 	if !utils.IsBinaryPresent(utils.ProgramPath(binaryPath, "docker")) {
 		return nil, liberrors.ErrBinaryNotFound
@@ -107,10 +108,6 @@ func (wrapper *PluginWrapper) command(command composeCommand, workingDir, url, p
 
 	args := []string{}
 
-	if wrapper.configPath != "" {
-		args = append(args, "--config", wrapper.configPath)
-	}
-
 	if url != "" {
 		args = append(args, "-H", url)
 	}
@@ -120,6 +117,11 @@ func (wrapper *PluginWrapper) command(command composeCommand, workingDir, url, p
 
 	cmd := exec.Command(program, args...)
 	cmd.Dir = workingDir
+
+	if wrapper.configPath != "" {
+		cmd.Env = os.Environ()
+		cmd.Env = append(cmd.Env, fmt.Sprintf("DOCKER_CONFIG=%s", wrapper.configPath))
+	}
 
 	cmd.Stderr = &stderr
 
@@ -160,10 +162,6 @@ func newDownCommand(filePaths []string) composeCommand {
 
 func newPullCommand(filePaths []string) composeCommand {
 	return newCommand([]string{"pull"}, filePaths)
-}
-
-func (command *composeCommand) WithConfigPath(configPath string) {
-	command.args = append(command.args, "--config", configPath)
 }
 
 func (command *composeCommand) WithProjectName(projectName string) {
