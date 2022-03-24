@@ -65,7 +65,12 @@ func NewPluginWrapper(binaryPath, configPath string) (libstack.Deployer, error) 
 func (wrapper *PluginWrapper) Deploy(ctx context.Context, workingDir, host, projectName string, filePaths []string, envFilePath string, forceRereate bool) error {
 	output, err := wrapper.command(newUpCommand(filePaths, forceRereate), workingDir, host, projectName, envFilePath)
 	if len(output) != 0 {
-		log.Printf("[libstack,composebinary] [message: finish deploying] [output: %s] [err: %s]", output, err)
+		if err != nil {
+			log.Printf("[libstack,composebinary] [message: deploy complete] [output: %s] [err: %s]", output, err)
+			return err
+		}
+
+		log.Printf("[libstack,composebinary] [message: deploy complete] [output: %s] [success]", output)
 	}
 
 	return err
@@ -75,7 +80,12 @@ func (wrapper *PluginWrapper) Deploy(ctx context.Context, workingDir, host, proj
 func (wrapper *PluginWrapper) Remove(ctx context.Context, workingDir, host, projectName string, filePaths []string) error {
 	output, err := wrapper.command(newDownCommand(filePaths), workingDir, host, projectName, "")
 	if len(output) != 0 {
-		log.Printf("[libstack,composebinary] [message: finish deploying] [output: %s] [err: %s]", output, err)
+		if err != nil {
+			log.Printf("[libstack,composebinary] [message: remove complete] [output: %s] [err: %s]", output, err)
+			return err
+		}
+
+		log.Printf("[libstack,composebinary] [message: remove complete] [output: %s] [success]", output)
 	}
 
 	return err
@@ -85,7 +95,12 @@ func (wrapper *PluginWrapper) Remove(ctx context.Context, workingDir, host, proj
 func (wrapper *PluginWrapper) Pull(ctx context.Context, workingDir, host, projectName string, filePaths []string) error {
 	output, err := wrapper.command(newPullCommand(filePaths), workingDir, host, projectName, "")
 	if len(output) != 0 {
-		log.Printf("[libstack,composebinary] [message: finish pulling] [output: %s] [err: %s]", output, err)
+		if err != nil {
+			log.Printf("[libstack,composebinary] [message: pull complete] [output: %s] [err: %s]", output, err)
+			return err
+		}
+
+		log.Printf("[libstack,composebinary] [message: pull complete] [output: %s] [success]", output)
 	}
 
 	return err
