@@ -39,8 +39,8 @@ func (wrapper *ComposeWrapper) Deploy(ctx context.Context, workingDir, host, pro
 			return err
 		}
 
-		log.Printf("[INFO] [libstack,composebinary] [message: Stack deployment successful]")
-		log.Printf("[DEBUG] [libstack,composebinary] [output: %s]", output)
+		log.Printf("[INFO] [compose,internal,composebinary] [message: Stack deployment successful]")
+		log.Printf("[DEBUG] [compose,internal,composebinary] [output: %s]", output)
 	}
 
 	return err
@@ -54,8 +54,8 @@ func (wrapper *ComposeWrapper) Remove(ctx context.Context, workingDir, host, pro
 			return err
 		}
 
-		log.Printf("[INFO] [libstack,composebinary] [message: Stack removal successful]")
-		log.Printf("[DEBUG] [libstack,composebinary] [output: %s]", output)
+		log.Printf("[INFO] [compose,internal,composebinary] [message: Stack removal successful]")
+		log.Printf("[DEBUG] [compose,internal,composebinary] [output: %s]", output)
 	}
 
 	return err
@@ -70,8 +70,8 @@ func (wrapper *ComposeWrapper) Pull(ctx context.Context, workingDir, host, proje
 			return err
 		}
 
-		log.Printf("[INFO] [libstack,composebinary] [message: Stack pull successful]")
-		log.Printf("[DEBUG] [libstack,composebinary] [output: %s]", output)
+		log.Printf("[INFO] [compose,internal,composebinary] [message: Stack pull successful]")
+		log.Printf("[DEBUG] [compose,internal,composebinary] [output: %s]", output)
 	}
 
 	return err
