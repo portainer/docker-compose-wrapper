@@ -36,7 +36,6 @@ func (wrapper *ComposeWrapper) Deploy(ctx context.Context, workingDir, host, pro
 	output, err := wrapper.Command(newUpCommand(filePaths, forceRereate), workingDir, host, projectName, envFilePath)
 	if len(output) != 0 {
 		if err != nil {
-			log.Printf("[libstack,composebinary] [message: deploy complete] [output: %s] [err: %s]", output, err)
 			return err
 		}
 
