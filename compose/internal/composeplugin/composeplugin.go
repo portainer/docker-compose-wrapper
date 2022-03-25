@@ -66,11 +66,11 @@ func (wrapper *PluginWrapper) Deploy(ctx context.Context, workingDir, host, proj
 	output, err := wrapper.command(newUpCommand(filePaths, forceRereate), workingDir, host, projectName, envFilePath)
 	if len(output) != 0 {
 		if err != nil {
-			log.Printf("[libstack,composebinary] [message: deploy complete] [output: %s] [err: %s]", output, err)
 			return err
 		}
 
-		log.Printf("[libstack,composebinary] [message: deploy complete] [output: %s] [success]", output)
+		log.Printf("[INFO] [libstack,composeplugin] [message: Stack deployment successful]")
+		log.Printf("[DEBUG] [libstack,composeplugin] [output: %s]", output)
 	}
 
 	return err
@@ -81,11 +81,11 @@ func (wrapper *PluginWrapper) Remove(ctx context.Context, workingDir, host, proj
 	output, err := wrapper.command(newDownCommand(filePaths), workingDir, host, projectName, "")
 	if len(output) != 0 {
 		if err != nil {
-			log.Printf("[libstack,composebinary] [message: remove complete] [output: %s] [err: %s]", output, err)
 			return err
 		}
 
-		log.Printf("[libstack,composebinary] [message: remove complete] [output: %s] [success]", output)
+		log.Printf("[INFO] [libstack,composeplugin] [message: Stack removal successful]")
+		log.Printf("[DEBUG] [libstack,composeplugin] [output: %s]", output)
 	}
 
 	return err
@@ -96,11 +96,11 @@ func (wrapper *PluginWrapper) Pull(ctx context.Context, workingDir, host, projec
 	output, err := wrapper.command(newPullCommand(filePaths), workingDir, host, projectName, "")
 	if len(output) != 0 {
 		if err != nil {
-			log.Printf("[libstack,composebinary] [message: pull complete] [output: %s] [err: %s]", output, err)
 			return err
 		}
 
-		log.Printf("[libstack,composebinary] [message: pull complete] [output: %s] [success]", output)
+		log.Printf("[INFO] [libstack,composeplugin] [message: Stack pull successful]")
+		log.Printf("[DEBUG] [libstack,composeplugin] [output: %s]", output)
 	}
 
 	return err

@@ -40,7 +40,8 @@ func (wrapper *ComposeWrapper) Deploy(ctx context.Context, workingDir, host, pro
 			return err
 		}
 
-		log.Printf("[libstack,composebinary] [message: deploy complete] [output: %s] [success]", output)
+		log.Printf("[INFO] [libstack,composebinary] [message: Stack deployment successful]")
+		log.Printf("[DEBUG] [libstack,composebinary] [output: %s]", output)
 	}
 
 	return err
@@ -51,11 +52,11 @@ func (wrapper *ComposeWrapper) Remove(ctx context.Context, workingDir, host, pro
 	output, err := wrapper.Command(newDownCommand(filePaths), workingDir, host, projectName, "")
 	if len(output) != 0 {
 		if err != nil {
-			log.Printf("[libstack,composebinary] [message: remove complete] [output: %s] [err: %s]", output, err)
 			return err
 		}
 
-		log.Printf("[libstack,composebinary] [message: remove complete] [output: %s] [success]", output)
+		log.Printf("[INFO] [libstack,composebinary] [message: Stack removal successful]")
+		log.Printf("[DEBUG] [libstack,composebinary] [output: %s]", output)
 	}
 
 	return err
@@ -67,11 +68,11 @@ func (wrapper *ComposeWrapper) Pull(ctx context.Context, workingDir, host, proje
 	output, err := wrapper.Command(newPullCommand(filePaths), workingDir, host, projectName, "")
 	if len(output) != 0 {
 		if err != nil {
-			log.Printf("[libstack,composebinary] [message: pull complete] [output: %s] [err: %s]", output, err)
 			return err
 		}
 
-		log.Printf("[libstack,composebinary] [message: pull complete] [output: %s] [success]", output)
+		log.Printf("[INFO] [libstack,composebinary] [message: Stack pull successful]")
+		log.Printf("[DEBUG] [libstack,composebinary] [output: %s]", output)
 	}
 
 	return err
