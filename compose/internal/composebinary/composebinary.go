@@ -37,7 +37,7 @@ func (wrapper *ComposeWrapper) Deploy(ctx context.Context, workingDir, host, pro
 	if len(output) != 0 {
 		if err != nil {
 			log.Printf("[libstack,composebinary] [message: deploy complete] [output: %s] [err: %s]", output, err)
-			return nil
+			return err
 		}
 
 		log.Printf("[libstack,composebinary] [message: deploy complete] [output: %s] [success]", output)
@@ -52,7 +52,7 @@ func (wrapper *ComposeWrapper) Remove(ctx context.Context, workingDir, host, pro
 	if len(output) != 0 {
 		if err != nil {
 			log.Printf("[libstack,composebinary] [message: remove complete] [output: %s] [err: %s]", output, err)
-			return nil
+			return err
 		}
 
 		log.Printf("[libstack,composebinary] [message: remove complete] [output: %s] [success]", output)
@@ -68,7 +68,7 @@ func (wrapper *ComposeWrapper) Pull(ctx context.Context, workingDir, host, proje
 	if len(output) != 0 {
 		if err != nil {
 			log.Printf("[libstack,composebinary] [message: pull complete] [output: %s] [err: %s]", output, err)
-			return nil
+			return err
 		}
 
 		log.Printf("[libstack,composebinary] [message: pull complete] [output: %s] [success]", output)
