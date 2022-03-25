@@ -18,7 +18,7 @@ func NewComposeDeployer(binaryPath, configPath string) (libstack.Deployer, error
 	}
 
 	if err == errors.ErrBinaryNotFound {
-		log.Printf("[INFO] [main,compose] [message: binary is missing, falling-back to compose plugin] [error: %s]", err)
+		log.Printf("[INFO] [compose] [message: binary is missing, falling-back to compose plugin] [error: %s]", err)
 		return composeplugin.NewPluginWrapper(binaryPath, configPath)
 	}
 

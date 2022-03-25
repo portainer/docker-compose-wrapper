@@ -65,7 +65,12 @@ func NewPluginWrapper(binaryPath, configPath string) (libstack.Deployer, error) 
 func (wrapper *PluginWrapper) Deploy(ctx context.Context, workingDir, host, projectName string, filePaths []string, envFilePath string, forceRereate bool) error {
 	output, err := wrapper.command(newUpCommand(filePaths, forceRereate), workingDir, host, projectName, envFilePath)
 	if len(output) != 0 {
-		log.Printf("[libstack,composebinary] [message: finish deploying] [output: %s] [err: %s]", output, err)
+		if err != nil {
+			return err
+		}
+
+		log.Printf("[INFO] [compose,internal,composeplugin] [message: Stack deployment successful]")
+		log.Printf("[DEBUG] [compose,internal,composeplugin] [output: %s]", output)
 	}
 
 	return err
@@ -75,7 +80,12 @@ func (wrapper *PluginWrapper) Deploy(ctx context.Context, workingDir, host, proj
 func (wrapper *PluginWrapper) Remove(ctx context.Context, workingDir, host, projectName string, filePaths []string) error {
 	output, err := wrapper.command(newDownCommand(filePaths), workingDir, host, projectName, "")
 	if len(output) != 0 {
-		log.Printf("[libstack,composebinary] [message: finish deploying] [output: %s] [err: %s]", output, err)
+		if err != nil {
+			return err
+		}
+
+		log.Printf("[INFO] [compose,internal,composeplugin] [message: Stack removal successful]")
+		log.Printf("[DEBUG] [compose,internal,composeplugin] [output: %s]", output)
 	}
 
 	return err
@@ -85,7 +95,12 @@ func (wrapper *PluginWrapper) Remove(ctx context.Context, workingDir, host, proj
 func (wrapper *PluginWrapper) Pull(ctx context.Context, workingDir, host, projectName string, filePaths []string) error {
 	output, err := wrapper.command(newPullCommand(filePaths), workingDir, host, projectName, "")
 	if len(output) != 0 {
-		log.Printf("[libstack,composebinary] [message: finish pulling] [output: %s] [err: %s]", output, err)
+		if err != nil {
+			return err
+		}
+
+		log.Printf("[INFO] [compose,internal,composeplugin] [message: Stack pull successful]")
+		log.Printf("[DEBUG] [compose,internal,composeplugin] [output: %s]", output)
 	}
 
 	return err

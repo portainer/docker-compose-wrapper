@@ -35,7 +35,12 @@ func NewComposeWrapper(binaryPath, configPath string) (libstack.Deployer, error)
 func (wrapper *ComposeWrapper) Deploy(ctx context.Context, workingDir, host, projectName string, filePaths []string, envFilePath string, forceRereate bool) error {
 	output, err := wrapper.Command(newUpCommand(filePaths, forceRereate), workingDir, host, projectName, envFilePath)
 	if len(output) != 0 {
-		log.Printf("[libstack,composebinary] [message: finish deploying] [output: %s] [err: %s]", output, err)
+		if err != nil {
+			return err
+		}
+
+		log.Printf("[INFO] [compose,internal,composebinary] [message: Stack deployment successful]")
+		log.Printf("[DEBUG] [compose,internal,composebinary] [output: %s]", output)
 	}
 
 	return err
@@ -45,7 +50,12 @@ func (wrapper *ComposeWrapper) Deploy(ctx context.Context, workingDir, host, pro
 func (wrapper *ComposeWrapper) Remove(ctx context.Context, workingDir, host, projectName string, filePaths []string) error {
 	output, err := wrapper.Command(newDownCommand(filePaths), workingDir, host, projectName, "")
 	if len(output) != 0 {
-		log.Printf("[libstack,composebinary] [message: finish deploying] [output: %s] [err: %s]", output, err)
+		if err != nil {
+			return err
+		}
+
+		log.Printf("[INFO] [compose,internal,composebinary] [message: Stack removal successful]")
+		log.Printf("[DEBUG] [compose,internal,composebinary] [output: %s]", output)
 	}
 
 	return err
@@ -56,7 +66,12 @@ func (wrapper *ComposeWrapper) Remove(ctx context.Context, workingDir, host, pro
 func (wrapper *ComposeWrapper) Pull(ctx context.Context, workingDir, host, projectName string, filePaths []string) error {
 	output, err := wrapper.Command(newPullCommand(filePaths), workingDir, host, projectName, "")
 	if len(output) != 0 {
-		log.Printf("[libstack,composebinary] [message: finish deploying] [output: %s] [err: %s]", output, err)
+		if err != nil {
+			return err
+		}
+
+		log.Printf("[INFO] [compose,internal,composebinary] [message: Stack pull successful]")
+		log.Printf("[DEBUG] [compose,internal,composebinary] [output: %s]", output)
 	}
 
 	return err
