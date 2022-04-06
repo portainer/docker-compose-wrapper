@@ -165,7 +165,6 @@ func newCommand(command []string, filePaths []string) composeCommand {
 
 func newUpCommand(filePaths []string, forceRereate bool) composeCommand {
 	args := []string{"up", "-d"}
-	//set `--force-recreate` flag if forceRereate param is true
 	if forceRereate {
 		args = append(args, "--force-recreate")
 	}
