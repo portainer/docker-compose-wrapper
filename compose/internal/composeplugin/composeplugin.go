@@ -92,8 +92,8 @@ func (wrapper *PluginWrapper) Remove(ctx context.Context, workingDir, host, proj
 }
 
 // Pull images
-func (wrapper *PluginWrapper) Pull(ctx context.Context, workingDir, host, projectName string, filePaths []string) error {
-	output, err := wrapper.command(newPullCommand(filePaths), workingDir, host, projectName, "")
+func (wrapper *PluginWrapper) Pull(ctx context.Context, workingDir, host, projectName string, filePaths []string, envFilePath string) error {
+	output, err := wrapper.command(newPullCommand(filePaths), workingDir, host, projectName, envFilePath)
 	if len(output) != 0 {
 		if err != nil {
 			return err
@@ -170,7 +170,6 @@ func newUpCommand(filePaths []string, forceRereate bool) composeCommand {
 	}
 	return newCommand(args, filePaths)
 }
-
 
 func newDownCommand(filePaths []string) composeCommand {
 	return newCommand([]string{"down", "--remove-orphans"}, filePaths)
