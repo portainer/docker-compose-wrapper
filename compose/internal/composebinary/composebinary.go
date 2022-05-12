@@ -63,8 +63,8 @@ func (wrapper *ComposeWrapper) Remove(ctx context.Context, workingDir, host, pro
 
 // Pull an image associated with a service defined in a docker-compose.yml or docker-stack.yml file,
 // but does not start containers based on those images.
-func (wrapper *ComposeWrapper) Pull(ctx context.Context, workingDir, host, projectName string, filePaths []string) error {
-	output, err := wrapper.Command(newPullCommand(filePaths), workingDir, host, projectName, "")
+func (wrapper *ComposeWrapper) Pull(ctx context.Context, workingDir, host, projectName string, filePaths []string, envFilePath string) error {
+	output, err := wrapper.Command(newPullCommand(filePaths), workingDir, host, projectName, envFilePath)
 	if len(output) != 0 {
 		if err != nil {
 			return err
