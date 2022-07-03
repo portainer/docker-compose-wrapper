@@ -77,8 +77,8 @@ func (wrapper *PluginWrapper) Deploy(ctx context.Context, workingDir, host, proj
 }
 
 // Down stop and remove containers
-func (wrapper *PluginWrapper) Remove(ctx context.Context, workingDir, host, projectName string, filePaths []string) error {
-	output, err := wrapper.command(newDownCommand(filePaths), workingDir, host, projectName, "")
+func (wrapper *PluginWrapper) Remove(ctx context.Context, workingDir, host, projectName string, filePaths []string, envFilePath string) error {
+	output, err := wrapper.command(newDownCommand(filePaths), workingDir, host, projectName, envFilePath)
 	if len(output) != 0 {
 		if err != nil {
 			return err
