@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"log"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -95,15 +96,17 @@ func (wrapper *PluginWrapper) command(command composeCommand, workingDir, host, 
 	var stderr bytes.Buffer
 
 	args := []string{}
-
-	if wrapper.configPath != "" {
-		args = append(args, "--config", wrapper.configPath)
-	}
-
 	args = append(args, command.ToArgs()...)
 
 	cmd := exec.Command(program, args...)
 	cmd.Dir = workingDir
+
+	if wrapper.configPath != "" {
+		if wrapper.configPath != "" {
+			cmd.Env = os.Environ()
+			cmd.Env = append(cmd.Env, "DOCKER_CONFIG="+wrapper.configPath)
+		}
+	}
 
 	cmd.Stderr = &stderr
 
@@ -146,10 +149,6 @@ func newDownCommand(filePaths []string) composeCommand {
 
 func newPullCommand(filePaths []string) composeCommand {
 	return newCommand([]string{"pull"}, filePaths)
-}
-
-func (command *composeCommand) WithConfigPath(configPath string) {
-	command.args = append(command.args, "--config", configPath)
 }
 
 func (command *composeCommand) WithProjectName(projectName string) {
