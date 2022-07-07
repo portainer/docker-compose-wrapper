@@ -2,6 +2,7 @@ package compose_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -13,7 +14,15 @@ import (
 	"github.com/portainer/docker-compose-wrapper/compose"
 )
 
+func checkPrerequisites(t *testing.T) {
+	if _, err := os.Stat("docker-compose"); errors.Is(err, os.ErrNotExist) {
+		t.Fatal("docker-compose binary not found, please run download.sh and re-run this suite")
+	}
+}
+
 func Test_UpAndDown(t *testing.T) {
+	checkPrerequisites(t)
+
 	deployer, _ := compose.NewComposeDeployer("", "")
 
 	const composeFileContent = `
@@ -49,7 +58,7 @@ func Test_UpAndDown(t *testing.T) {
 
 	ctx := context.Background()
 
-	err = deployer.Deploy(ctx, "", "", "test1", []string{filePathOriginal, filePathOverride}, "", false)
+	err = deployer.Deploy(ctx, "", "", "", []string{filePathOriginal, filePathOverride}, "", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -58,7 +67,7 @@ func Test_UpAndDown(t *testing.T) {
 		t.Fatal("container should exist")
 	}
 
-	err = deployer.Remove(ctx, "", "", "test1", []string{filePathOriginal, filePathOverride}, "")
+	err = deployer.Remove(ctx, "", "", "", []string{filePathOriginal, filePathOverride}, "")
 	if err != nil {
 		t.Fatal(err)
 	}

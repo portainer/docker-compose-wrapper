@@ -119,19 +119,19 @@ func (wrapper *PluginWrapper) command(command composeCommand, workingDir, host, 
 }
 
 type composeCommand struct {
-	command []string
-	args    []string
+	globalArgs        []string // docker-compose global arguments: --host host -f file.yaml
+	subCommandAndArgs []string // docker-compose subcommand:  up, down folllowed by subcommand arguments
 }
 
 func newCommand(command []string, filePaths []string) composeCommand {
-	var args []string
+	args := []string{}
 	for _, path := range filePaths {
 		args = append(args, "-f")
 		args = append(args, strings.TrimSpace(path))
 	}
 	return composeCommand{
-		args:    args,
-		command: command,
+		globalArgs:        args,
+		subCommandAndArgs: command,
 	}
 }
 
@@ -151,18 +151,20 @@ func newPullCommand(filePaths []string) composeCommand {
 	return newCommand([]string{"pull"}, filePaths)
 }
 
+func (command *composeCommand) WithHost(host string) {
+	// prepend compatibility flags such as this one as they must appear before the
+	// regular global args otherwise docker-compose will throw an error
+	command.globalArgs = append([]string{"--host", host}, command.globalArgs...)
+}
+
 func (command *composeCommand) WithProjectName(projectName string) {
-	command.args = append(command.args, "-p", projectName)
+	command.globalArgs = append(command.globalArgs, "--project-name", projectName)
 }
 
 func (command *composeCommand) WithEnvFilePath(envFilePath string) {
-	command.args = append(command.args, "--env-file", envFilePath)
-}
-
-func (command *composeCommand) WithHost(host string) {
-	command.args = append(command.args, "-H", host)
+	command.globalArgs = append(command.globalArgs, "--env-file", envFilePath)
 }
 
 func (command *composeCommand) ToArgs() []string {
-	return append(command.args, command.command...)
+	return append(command.globalArgs, command.subCommandAndArgs...)
 }

@@ -2,6 +2,7 @@ package composeplugin
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -14,6 +15,12 @@ import (
 	libstack "github.com/portainer/docker-compose-wrapper"
 )
 
+func checkPrerequisites(t *testing.T) {
+	if _, err := os.Stat("docker-compose"); errors.Is(err, os.ErrNotExist) {
+		t.Fatal("docker-compose binary not found, please run download.sh and re-run this suite")
+	}
+}
+
 func setup(t *testing.T) libstack.Deployer {
 	w, err := NewPluginWrapper("", "")
 	if err != nil {
@@ -24,30 +31,37 @@ func setup(t *testing.T) libstack.Deployer {
 }
 
 func Test_NewCommand_SingleFilePath(t *testing.T) {
+	checkPrerequisites(t)
+
 	cmd := newCommand([]string{"up", "-d"}, []string{"docker-compose.yml"})
 	expected := []string{"-f", "docker-compose.yml"}
-	if !reflect.DeepEqual(cmd.args, expected) {
-		t.Errorf("wrong output args, want: %v, got: %v", expected, cmd.args)
+	if !reflect.DeepEqual(cmd.globalArgs, expected) {
+		t.Errorf("wrong output args, want: %v, got: %v", expected, cmd.globalArgs)
 	}
 }
 
 func Test_NewCommand_MultiFilePaths(t *testing.T) {
+	checkPrerequisites(t)
+
 	cmd := newCommand([]string{"up", "-d"}, []string{"docker-compose.yml", "docker-compose-override.yml"})
 	expected := []string{"-f", "docker-compose.yml", "-f", "docker-compose-override.yml"}
-	if !reflect.DeepEqual(cmd.args, expected) {
-		t.Errorf("wrong output args, want: %v, got: %v", expected, cmd.args)
+	if !reflect.DeepEqual(cmd.globalArgs, expected) {
+		t.Errorf("wrong output args, want: %v, got: %v", expected, cmd.globalArgs)
 	}
 }
 
 func Test_NewCommand_MultiFilePaths_WithSpaces(t *testing.T) {
+	checkPrerequisites(t)
+
 	cmd := newCommand([]string{"up", "-d"}, []string{" docker-compose.yml", "docker-compose-override.yml "})
 	expected := []string{"-f", "docker-compose.yml", "-f", "docker-compose-override.yml"}
-	if !reflect.DeepEqual(cmd.args, expected) {
-		t.Errorf("wrong output args, want: %v, got: %v", expected, cmd.args)
+	if !reflect.DeepEqual(cmd.globalArgs, expected) {
+		t.Errorf("wrong output args, want: %v, got: %v", expected, cmd.globalArgs)
 	}
 }
 
 func Test_UpAndDown(t *testing.T) {
+	checkPrerequisites(t)
 
 	const composeFileContent = `version: "3.9"
 services:
@@ -79,7 +93,7 @@ services:
 	}
 
 	ctx := context.Background()
-	err = w.Deploy(ctx, "", "", "test1", []string{filePathOriginal, filePathOverride}, "", false)
+	err = w.Deploy(ctx, "", "", "", []string{filePathOriginal, filePathOverride}, "", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -88,7 +102,7 @@ services:
 		t.Fatal("container should exist")
 	}
 
-	err = w.Remove(ctx, "", "", "test1", []string{filePathOriginal, filePathOverride})
+	err = w.Remove(ctx, "", "", "", []string{filePathOriginal, filePathOverride}, "")
 	if err != nil {
 		t.Fatal(err)
 	}
