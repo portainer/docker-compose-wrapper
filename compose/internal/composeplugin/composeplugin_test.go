@@ -17,7 +17,7 @@ import (
 
 func checkPrerequisites(t *testing.T) {
 	if _, err := os.Stat("docker-compose"); errors.Is(err, os.ErrNotExist) {
-		t.Fatal("docker-compose binary not found, please run download.sh and re-run this suite")
+		t.Fatal("docker-compose binary not found, please run download.sh and re-run this test suite")
 	}
 }
 
