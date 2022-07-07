@@ -77,7 +77,7 @@ func (wrapper *PluginWrapper) Pull(ctx context.Context, workingDir, host, projec
 	return err
 }
 
-// Command exectue a docker-compose commanåd
+// Command exectue a docker-compose command
 func (wrapper *PluginWrapper) command(command composeCommand, workingDir, host, projectName, envFilePath string) ([]byte, error) {
 	program := utils.ProgramPath(wrapper.binaryPath, "docker-compose")
 
