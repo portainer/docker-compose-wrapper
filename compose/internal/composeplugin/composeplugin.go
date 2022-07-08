@@ -6,12 +6,10 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path"
 	"strings"
 
 	"github.com/pkg/errors"
 	libstack "github.com/portainer/docker-compose-wrapper"
-	liberrors "github.com/portainer/docker-compose-wrapper/compose/errors"
 	"github.com/portainer/docker-compose-wrapper/compose/internal/utils"
 )
 
@@ -27,34 +25,7 @@ type PluginWrapper struct {
 
 // NewPluginWrapper initializes a new ComposeWrapper service with local docker-compose binary.
 func NewPluginWrapper(binaryPath, configPath string) (libstack.Deployer, error) {
-	if !utils.IsBinaryPresent(utils.ProgramPath(binaryPath, "docker")) {
-		return nil, liberrors.ErrBinaryNotFound
-	}
-
-	if configPath == "" {
-		homePath, err := os.UserHomeDir()
-		if err != nil {
-			return nil, errors.WithMessage(err, "failed fetching user home directory")
-		}
-		configPath = path.Join(homePath, ".docker")
-	}
-
-	dockerPluginsPath := path.Join(configPath, "cli-plugins")
-	pluginPath := utils.ProgramPath(binaryPath, "docker-compose.plugin")
-
-	if utils.IsBinaryPresent(pluginPath) {
-		if !utils.IsBinaryPresent(utils.ProgramPath(dockerPluginsPath, "docker-compose")) {
-			err := os.MkdirAll(dockerPluginsPath, 0755)
-			if err != nil {
-				return nil, errors.WithMessage(err, "failed creating plugins path")
-			}
-		}
-
-		err := utils.Move(pluginPath, utils.ProgramPath(dockerPluginsPath, "docker-compose"))
-		if err != nil {
-			return nil, err
-		}
-	} else if !utils.IsBinaryPresent(utils.ProgramPath(dockerPluginsPath, "docker-compose")) {
+	if !utils.IsBinaryPresent(utils.ProgramPath(binaryPath, "docker-compose")) {
 		return nil, MissingDockerComposePluginErr
 	}
 
@@ -62,15 +33,15 @@ func NewPluginWrapper(binaryPath, configPath string) (libstack.Deployer, error) 
 }
 
 // Up create and start containers
-func (wrapper *PluginWrapper) Deploy(ctx context.Context, workingDir, host, projectName string, filePaths []string, envFilePath string, forceRereate bool) error {
-	output, err := wrapper.command(newUpCommand(filePaths, forceRereate), workingDir, host, projectName, envFilePath)
+func (wrapper *PluginWrapper) Deploy(ctx context.Context, workingDir, host, projectName string, filePaths []string, envFilePath string, forceRecreate bool) error {
+	output, err := wrapper.command(newUpCommand(filePaths, forceRecreate), workingDir, host, projectName, envFilePath)
 	if len(output) != 0 {
 		if err != nil {
 			return err
 		}
 
-		log.Printf("[INFO] [compose,internal,composeplugin] [message: Stack deployment successful]")
-		log.Printf("[DEBUG] [compose,internal,composeplugin] [output: %s]", output)
+		log.Printf("[INFO] [docker compose] [message: Stack deployment successful]")
+		log.Printf("[DEBUG] [docker compose] [output: %s]", output)
 	}
 
 	return err
@@ -84,8 +55,8 @@ func (wrapper *PluginWrapper) Remove(ctx context.Context, workingDir, host, proj
 			return err
 		}
 
-		log.Printf("[INFO] [compose,internal,composeplugin] [message: Stack removal successful]")
-		log.Printf("[DEBUG] [compose,internal,composeplugin] [output: %s]", output)
+		log.Printf("[INFO] [docker compose] [message: Stack removal successful]")
+		log.Printf("[DEBUG] [docker compose] [output: %s]", output)
 	}
 
 	return err
@@ -99,16 +70,16 @@ func (wrapper *PluginWrapper) Pull(ctx context.Context, workingDir, host, projec
 			return err
 		}
 
-		log.Printf("[INFO] [compose,internal,composeplugin] [message: Stack pull successful]")
-		log.Printf("[DEBUG] [compose,internal,composeplugin] [output: %s]", output)
+		log.Printf("[INFO] [docker compose] [message: Stack pull successful]")
+		log.Printf("[DEBUG] [docker compose] [output: %s]", output)
 	}
 
 	return err
 }
 
-// Command exectue a docker-compose commanåd
-func (wrapper *PluginWrapper) command(command composeCommand, workingDir, url, projectName, envFilePath string) ([]byte, error) {
-	program := utils.ProgramPath(wrapper.binaryPath, "docker")
+// Command execute a docker-compose command
+func (wrapper *PluginWrapper) command(command composeCommand, workingDir, host, projectName, envFilePath string) ([]byte, error) {
+	program := utils.ProgramPath(wrapper.binaryPath, "docker-compose")
 
 	if projectName != "" {
 		command.WithProjectName(projectName)
@@ -118,23 +89,24 @@ func (wrapper *PluginWrapper) command(command composeCommand, workingDir, url, p
 		command.WithEnvFilePath(envFilePath)
 	}
 
+	if host != "" {
+		command.WithHost(host)
+	}
+
 	var stderr bytes.Buffer
 
 	args := []string{}
-
-	if wrapper.configPath != "" {
-		args = append(args, "--config", wrapper.configPath)
-	}
-
-	if url != "" {
-		args = append(args, "-H", url)
-	}
-
-	args = append(args, "compose")
 	args = append(args, command.ToArgs()...)
 
 	cmd := exec.Command(program, args...)
 	cmd.Dir = workingDir
+
+	if wrapper.configPath != "" {
+		if wrapper.configPath != "" {
+			cmd.Env = os.Environ()
+			cmd.Env = append(cmd.Env, "DOCKER_CONFIG="+wrapper.configPath)
+		}
+	}
 
 	cmd.Stderr = &stderr
 
@@ -147,19 +119,19 @@ func (wrapper *PluginWrapper) command(command composeCommand, workingDir, url, p
 }
 
 type composeCommand struct {
-	command []string
-	args    []string
+	globalArgs        []string // docker-compose global arguments: --host host -f file.yaml
+	subCommandAndArgs []string // docker-compose subcommand:  up, down folllowed by subcommand arguments
 }
 
 func newCommand(command []string, filePaths []string) composeCommand {
-	var args []string
+	args := []string{}
 	for _, path := range filePaths {
 		args = append(args, "-f")
 		args = append(args, strings.TrimSpace(path))
 	}
 	return composeCommand{
-		args:    args,
-		command: command,
+		globalArgs:        args,
+		subCommandAndArgs: command,
 	}
 }
 
@@ -179,22 +151,20 @@ func newPullCommand(filePaths []string) composeCommand {
 	return newCommand([]string{"pull"}, filePaths)
 }
 
-func (command *composeCommand) WithConfigPath(configPath string) {
-	command.args = append(command.args, "--config", configPath)
+func (command *composeCommand) WithHost(host string) {
+	// prepend compatibility flags such as this one as they must appear before the
+	// regular global args otherwise docker-compose will throw an error
+	command.globalArgs = append([]string{"--host", host}, command.globalArgs...)
 }
 
 func (command *composeCommand) WithProjectName(projectName string) {
-	command.args = append(command.args, "-p", projectName)
+	command.globalArgs = append(command.globalArgs, "--project-name", projectName)
 }
 
 func (command *composeCommand) WithEnvFilePath(envFilePath string) {
-	command.args = append(command.args, "--env-file", envFilePath)
-}
-
-func (command *composeCommand) WithURL(url string) {
-	command.args = append(command.args, "-H", url)
+	command.globalArgs = append(command.globalArgs, "--env-file", envFilePath)
 }
 
 func (command *composeCommand) ToArgs() []string {
-	return append(command.args, command.command...)
+	return append(command.globalArgs, command.subCommandAndArgs...)
 }
