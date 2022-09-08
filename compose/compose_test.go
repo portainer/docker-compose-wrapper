@@ -43,8 +43,7 @@ func Test_UpAndDown(t *testing.T) {
 
 	const composeContainerName = "test_container_two"
 
-	dir := os.TempDir()
-	defer os.RemoveAll(dir)
+	dir := t.TempDir()
 
 	filePathOriginal, err := createFile(dir, "docker-compose.yml", composeFileContent)
 	if err != nil {
