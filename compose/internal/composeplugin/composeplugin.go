@@ -3,7 +3,6 @@ package composeplugin
 import (
 	"bytes"
 	"context"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -11,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	libstack "github.com/portainer/docker-compose-wrapper"
 	"github.com/portainer/docker-compose-wrapper/compose/internal/utils"
+	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -33,64 +33,81 @@ func NewPluginWrapper(binaryPath, configPath string) (libstack.Deployer, error) 
 }
 
 // Up create and start containers
-func (wrapper *PluginWrapper) Deploy(ctx context.Context, workingDir, host, projectName string, filePaths []string, envFilePath string, forceRecreate bool) error {
-	output, err := wrapper.command(newUpCommand(filePaths, forceRecreate), workingDir, host, projectName, envFilePath)
+func (wrapper *PluginWrapper) Deploy(ctx context.Context, filePaths []string, options libstack.DeployOptions) error {
+	output, err := wrapper.command(newUpCommand(filePaths, upOptions{
+		forceRecreate:        options.ForceRecreate,
+		abortOnContainerExit: options.AbortOnContainerExit,
+	}), options.Options,
+	)
 	if len(output) != 0 {
 		if err != nil {
 			return err
 		}
 
-		log.Printf("[INFO] [docker compose] [message: Stack deployment successful]")
-		log.Printf("[DEBUG] [docker compose] [output: %s]", output)
+		log.Info().
+			Str("message", "Stack deployment successful")
+
+		log.Debug().
+			Str("output", string(output)).
+			Msg("docker compose")
 	}
 
 	return err
 }
 
 // Down stop and remove containers
-func (wrapper *PluginWrapper) Remove(ctx context.Context, workingDir, host, projectName string, filePaths []string, envFilePath string) error {
-	output, err := wrapper.command(newDownCommand(filePaths), workingDir, host, projectName, envFilePath)
+func (wrapper *PluginWrapper) Remove(ctx context.Context, filePaths []string, options libstack.Options) error {
+	output, err := wrapper.command(newDownCommand(filePaths), options)
 	if len(output) != 0 {
 		if err != nil {
 			return err
 		}
 
-		log.Printf("[INFO] [docker compose] [message: Stack removal successful]")
-		log.Printf("[DEBUG] [docker compose] [output: %s]", output)
+		log.Info().
+			Str("message", "Stack removal successful")
+
+		log.Debug().
+			Str("output", string(output)).
+			Msg("docker compose")
+
 	}
 
 	return err
 }
 
 // Pull images
-func (wrapper *PluginWrapper) Pull(ctx context.Context, workingDir, host, projectName string, filePaths []string, envFilePath string) error {
-	output, err := wrapper.command(newPullCommand(filePaths), workingDir, host, projectName, envFilePath)
+func (wrapper *PluginWrapper) Pull(ctx context.Context, filePaths []string, options libstack.Options) error {
+	output, err := wrapper.command(newPullCommand(filePaths), options)
 	if len(output) != 0 {
 		if err != nil {
 			return err
 		}
 
-		log.Printf("[INFO] [docker compose] [message: Stack pull successful]")
-		log.Printf("[DEBUG] [docker compose] [output: %s]", output)
+		log.Info().
+			Str("message", "Stack pull successful")
+
+		log.Debug().
+			Str("output", string(output)).
+			Msg("docker compose")
 	}
 
 	return err
 }
 
 // Command execute a docker-compose command
-func (wrapper *PluginWrapper) command(command composeCommand, workingDir, host, projectName, envFilePath string) ([]byte, error) {
+func (wrapper *PluginWrapper) command(command composeCommand, options libstack.Options) ([]byte, error) {
 	program := utils.ProgramPath(wrapper.binaryPath, "docker-compose")
 
-	if projectName != "" {
-		command.WithProjectName(projectName)
+	if options.ProjectName != "" {
+		command.WithProjectName(options.ProjectName)
 	}
 
-	if envFilePath != "" {
-		command.WithEnvFilePath(envFilePath)
+	if options.EnvFilePath != "" {
+		command.WithEnvFilePath(options.EnvFilePath)
 	}
 
-	if host != "" {
-		command.WithHost(host)
+	if options.Host != "" {
+		command.WithHost(options.Host)
 	}
 
 	var stderr bytes.Buffer
@@ -99,20 +116,26 @@ func (wrapper *PluginWrapper) command(command composeCommand, workingDir, host, 
 	args = append(args, command.ToArgs()...)
 
 	cmd := exec.Command(program, args...)
-	cmd.Dir = workingDir
+	cmd.Dir = options.WorkingDir
 
 	if wrapper.configPath != "" {
-		if wrapper.configPath != "" {
-			cmd.Env = os.Environ()
-			cmd.Env = append(cmd.Env, "DOCKER_CONFIG="+wrapper.configPath)
-		}
+		cmd.Env = os.Environ()
+		cmd.Env = append(cmd.Env, "DOCKER_CONFIG="+wrapper.configPath)
 	}
 
 	cmd.Stderr = &stderr
 
 	output, err := cmd.Output()
 	if err != nil {
-		return nil, errors.New(stderr.String())
+		errOutput := stderr.String()
+		log.Warn().
+			Str("output", string(output)).
+			Str("error_output", errOutput).
+			Err(err).
+			Msg("docker compose command failed")
+
+		// stderr output outputs useless information such as "Removing network stack_default"
+		return nil, errors.WithMessage(err, "docker-compose command failed")
 	}
 
 	return output, nil
@@ -135,9 +158,21 @@ func newCommand(command []string, filePaths []string) composeCommand {
 	}
 }
 
-func newUpCommand(filePaths []string, forceRereate bool) composeCommand {
-	args := []string{"up", "-d"}
-	if forceRereate {
+type upOptions struct {
+	forceRecreate        bool
+	abortOnContainerExit bool ``
+}
+
+func newUpCommand(filePaths []string, options upOptions) composeCommand {
+	args := []string{"up"}
+
+	if options.abortOnContainerExit {
+		args = append(args, "--abort-on-container-exit")
+	} else { // detach by default, not working with --abort-on-container-exit
+		args = append(args, "-d")
+	}
+
+	if options.forceRecreate {
 		args = append(args, "--force-recreate")
 	}
 	return newCommand(args, filePaths)

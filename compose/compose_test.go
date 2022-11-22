@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	libstack "github.com/portainer/docker-compose-wrapper"
 	"github.com/portainer/docker-compose-wrapper/compose"
 )
 
@@ -57,7 +58,7 @@ func Test_UpAndDown(t *testing.T) {
 
 	ctx := context.Background()
 
-	err = deployer.Deploy(ctx, "", "", "", []string{filePathOriginal, filePathOverride}, "", false)
+	err = deployer.Deploy(ctx, []string{filePathOriginal, filePathOverride}, libstack.DeployOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -66,7 +67,7 @@ func Test_UpAndDown(t *testing.T) {
 		t.Fatal("container should exist")
 	}
 
-	err = deployer.Remove(ctx, "", "", "", []string{filePathOriginal, filePathOverride}, "")
+	err = deployer.Remove(ctx, []string{filePathOriginal, filePathOverride}, libstack.Options{})
 	if err != nil {
 		t.Fatal(err)
 	}
