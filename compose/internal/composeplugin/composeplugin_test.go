@@ -92,7 +92,7 @@ services:
 	}
 
 	ctx := context.Background()
-	err = w.Deploy(ctx, "", "", "", []string{filePathOriginal, filePathOverride}, "", false)
+	err = w.Deploy(ctx, []string{filePathOriginal, filePathOverride}, libstack.DeployOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -101,7 +101,7 @@ services:
 		t.Fatal("container should exist")
 	}
 
-	err = w.Remove(ctx, "", "", "", []string{filePathOriginal, filePathOverride}, "")
+	err = w.Remove(ctx, []string{filePathOriginal, filePathOverride}, libstack.Options{})
 	if err != nil {
 		t.Fatal(err)
 	}

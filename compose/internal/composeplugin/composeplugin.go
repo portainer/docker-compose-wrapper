@@ -33,8 +33,11 @@ func NewPluginWrapper(binaryPath, configPath string) (libstack.Deployer, error) 
 }
 
 // Up create and start containers
-func (wrapper *PluginWrapper) Deploy(ctx context.Context, workingDir, host, projectName string, filePaths []string, envFilePath string, forceRecreate bool) error {
-	output, err := wrapper.command(newUpCommand(filePaths, forceRecreate), workingDir, host, projectName, envFilePath)
+func (wrapper *PluginWrapper) Deploy(ctx context.Context, filePaths []string, options libstack.DeployOptions) error {
+	output, err := wrapper.command(newUpCommand(filePaths, upOptions{
+		forceRecreate: options.ForceRecreate,
+	}), options.Options,
+	)
 	if len(output) != 0 {
 		if err != nil {
 			return err
@@ -48,8 +51,8 @@ func (wrapper *PluginWrapper) Deploy(ctx context.Context, workingDir, host, proj
 }
 
 // Down stop and remove containers
-func (wrapper *PluginWrapper) Remove(ctx context.Context, workingDir, host, projectName string, filePaths []string, envFilePath string) error {
-	output, err := wrapper.command(newDownCommand(filePaths), workingDir, host, projectName, envFilePath)
+func (wrapper *PluginWrapper) Remove(ctx context.Context, filePaths []string, options libstack.Options) error {
+	output, err := wrapper.command(newDownCommand(filePaths), options)
 	if len(output) != 0 {
 		if err != nil {
 			return err
@@ -63,8 +66,8 @@ func (wrapper *PluginWrapper) Remove(ctx context.Context, workingDir, host, proj
 }
 
 // Pull images
-func (wrapper *PluginWrapper) Pull(ctx context.Context, workingDir, host, projectName string, filePaths []string, envFilePath string) error {
-	output, err := wrapper.command(newPullCommand(filePaths), workingDir, host, projectName, envFilePath)
+func (wrapper *PluginWrapper) Pull(ctx context.Context, filePaths []string, options libstack.Options) error {
+	output, err := wrapper.command(newPullCommand(filePaths), options)
 	if len(output) != 0 {
 		if err != nil {
 			return err
@@ -78,19 +81,19 @@ func (wrapper *PluginWrapper) Pull(ctx context.Context, workingDir, host, projec
 }
 
 // Command execute a docker-compose command
-func (wrapper *PluginWrapper) command(command composeCommand, workingDir, host, projectName, envFilePath string) ([]byte, error) {
+func (wrapper *PluginWrapper) command(command composeCommand, options libstack.Options) ([]byte, error) {
 	program := utils.ProgramPath(wrapper.binaryPath, "docker-compose")
 
-	if projectName != "" {
-		command.WithProjectName(projectName)
+	if options.ProjectName != "" {
+		command.WithProjectName(options.ProjectName)
 	}
 
-	if envFilePath != "" {
-		command.WithEnvFilePath(envFilePath)
+	if options.EnvFilePath != "" {
+		command.WithEnvFilePath(options.EnvFilePath)
 	}
 
-	if host != "" {
-		command.WithHost(host)
+	if options.Host != "" {
+		command.WithHost(options.Host)
 	}
 
 	var stderr bytes.Buffer
@@ -99,13 +102,11 @@ func (wrapper *PluginWrapper) command(command composeCommand, workingDir, host, 
 	args = append(args, command.ToArgs()...)
 
 	cmd := exec.Command(program, args...)
-	cmd.Dir = workingDir
+	cmd.Dir = options.WorkingDir
 
 	if wrapper.configPath != "" {
-		if wrapper.configPath != "" {
-			cmd.Env = os.Environ()
-			cmd.Env = append(cmd.Env, "DOCKER_CONFIG="+wrapper.configPath)
-		}
+		cmd.Env = os.Environ()
+		cmd.Env = append(cmd.Env, "DOCKER_CONFIG="+wrapper.configPath)
 	}
 
 	cmd.Stderr = &stderr
@@ -135,9 +136,14 @@ func newCommand(command []string, filePaths []string) composeCommand {
 	}
 }
 
-func newUpCommand(filePaths []string, forceRereate bool) composeCommand {
+type upOptions struct {
+	forceRecreate bool
+}
+
+func newUpCommand(filePaths []string, options upOptions) composeCommand {
+	// --abort-on-container-exit
 	args := []string{"up", "-d"}
-	if forceRereate {
+	if options.forceRecreate {
 		args = append(args, "--force-recreate")
 	}
 	return newCommand(args, filePaths)
