@@ -3,7 +3,6 @@ package composeplugin
 import (
 	"bytes"
 	"context"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -11,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 	libstack "github.com/portainer/docker-compose-wrapper"
 	"github.com/portainer/docker-compose-wrapper/compose/internal/utils"
+	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -44,8 +44,12 @@ func (wrapper *PluginWrapper) Deploy(ctx context.Context, filePaths []string, op
 			return err
 		}
 
-		log.Printf("[INFO] [docker compose] [message: Stack deployment successful]")
-		log.Printf("[DEBUG] [docker compose] [output: %s]", output)
+		log.Info().
+			Str("message", "Stack deployment successful")
+
+		log.Debug().
+			Str("output", string(output)).
+			Msg("docker compose")
 	}
 
 	return err
@@ -59,8 +63,13 @@ func (wrapper *PluginWrapper) Remove(ctx context.Context, filePaths []string, op
 			return err
 		}
 
-		log.Printf("[INFO] [docker compose] [message: Stack removal successful]")
-		log.Printf("[DEBUG] [docker compose] [output: %s]", output)
+		log.Info().
+			Str("message", "Stack removal successful")
+
+		log.Debug().
+			Str("output", string(output)).
+			Msg("docker compose")
+
 	}
 
 	return err
@@ -74,8 +83,12 @@ func (wrapper *PluginWrapper) Pull(ctx context.Context, filePaths []string, opti
 			return err
 		}
 
-		log.Printf("[INFO] [docker compose] [message: Stack pull successful]")
-		log.Printf("[DEBUG] [docker compose] [output: %s]", output)
+		log.Info().
+			Str("message", "Stack pull successful")
+
+		log.Debug().
+			Str("output", string(output)).
+			Msg("docker compose")
 	}
 
 	return err
@@ -115,7 +128,12 @@ func (wrapper *PluginWrapper) command(command composeCommand, options libstack.O
 	output, err := cmd.Output()
 	if err != nil {
 		errOutput := stderr.String()
-		log.Printf("[INFO] [message: docker compose command failed] [output: %s] [error_output: %s] [error: %s]", output, errOutput, err)
+		log.Warn().
+			Str("output", string(output)).
+			Str("error_output", errOutput).
+			Err(err).
+			Msg("docker compose command failed")
+
 		// stderr output outputs useless information such as "Removing network stack_default"
 		return nil, errors.WithMessage(err, "docker-compose command failed")
 	}
