@@ -19,5 +19,6 @@ type Options struct {
 
 type DeployOptions struct {
 	Options
-	ForceRecreate bool
+	ForceRecreate        bool
+	AbortOnContainerExit bool ``
 }

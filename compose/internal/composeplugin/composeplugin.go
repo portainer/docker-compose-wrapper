@@ -35,7 +35,8 @@ func NewPluginWrapper(binaryPath, configPath string) (libstack.Deployer, error) 
 // Up create and start containers
 func (wrapper *PluginWrapper) Deploy(ctx context.Context, filePaths []string, options libstack.DeployOptions) error {
 	output, err := wrapper.command(newUpCommand(filePaths, upOptions{
-		forceRecreate: options.ForceRecreate,
+		forceRecreate:        options.ForceRecreate,
+		abortOnContainerExit: options.AbortOnContainerExit,
 	}), options.Options,
 	)
 	if len(output) != 0 {
@@ -113,7 +114,10 @@ func (wrapper *PluginWrapper) command(command composeCommand, options libstack.O
 
 	output, err := cmd.Output()
 	if err != nil {
-		return nil, errors.New(stderr.String())
+		errOutput := stderr.String()
+		log.Printf("[INFO] [message: docker compose command failed] [output: %s] [error_output: %s] [error: %s]", output, errOutput, err)
+		// stderr output outputs useless information such as "Removing network stack_default"
+		return nil, errors.WithMessage(err, "docker-compose command failed")
 	}
 
 	return output, nil
@@ -137,12 +141,19 @@ func newCommand(command []string, filePaths []string) composeCommand {
 }
 
 type upOptions struct {
-	forceRecreate bool
+	forceRecreate        bool
+	abortOnContainerExit bool ``
 }
 
 func newUpCommand(filePaths []string, options upOptions) composeCommand {
-	// --abort-on-container-exit
-	args := []string{"up", "-d"}
+	args := []string{"up"}
+
+	if options.abortOnContainerExit {
+		args = append(args, "--abort-on-container-exit")
+	} else { // detach by default, not working with --abort-on-container-exit
+		args = append(args, "-d")
+	}
+
 	if options.forceRecreate {
 		args = append(args, "--force-recreate")
 	}
