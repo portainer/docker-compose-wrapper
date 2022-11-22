@@ -159,7 +159,7 @@ func newCommand(command []string, filePaths []string) composeCommand {
 
 type upOptions struct {
 	forceRecreate        bool
-	abortOnContainerExit bool ``
+	abortOnContainerExit bool
 }
 
 func newUpCommand(filePaths []string, options upOptions) composeCommand {
