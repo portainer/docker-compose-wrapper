@@ -15,6 +15,7 @@ type Options struct {
 	Host        string
 	ProjectName string
 	EnvFilePath string
+	Env         map[string]string
 }
 
 type DeployOptions struct {
