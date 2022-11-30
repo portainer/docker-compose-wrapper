@@ -126,9 +126,13 @@ func (wrapper *PluginWrapper) command(command composeCommand, options libstack.O
 		cmd.Env = append(cmd.Env, "DOCKER_CONFIG="+wrapper.configPath)
 	}
 
-	for envKey, envValue := range options.Env {
-		cmd.Env = append(cmd.Env, envKey+"="+envValue)
-	}
+	cmd.Env = append(cmd.Env, options.Env...)
+
+	log.Debug().
+		Str("command", program).
+		Strs("args", args).
+		Interface("env", cmd.Env).
+		Msg("run command")
 
 	cmd.Stderr = &stderr
 
