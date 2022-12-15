@@ -134,8 +134,7 @@ func (wrapper *PluginWrapper) command(command composeCommand, options libstack.O
 			Err(err).
 			Msg("docker compose command failed")
 
-		// stderr output outputs useless information such as "Removing network stack_default"
-		return nil, errors.WithMessage(err, "docker-compose command failed")
+		return nil, errors.New(errOutput)
 	}
 
 	return output, nil
