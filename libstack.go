@@ -14,7 +14,10 @@ type Options struct {
 	WorkingDir  string
 	Host        string
 	ProjectName string
+	// EnvFilePath is the path to a .env file
 	EnvFilePath string
+	// Env is a list of environment variables to pass to the command, example: "FOO=bar"
+	Env []string
 }
 
 type DeployOptions struct {

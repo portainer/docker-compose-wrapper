@@ -37,8 +37,8 @@ func (wrapper *PluginWrapper) Deploy(ctx context.Context, filePaths []string, op
 	output, err := wrapper.command(newUpCommand(filePaths, upOptions{
 		forceRecreate:        options.ForceRecreate,
 		abortOnContainerExit: options.AbortOnContainerExit,
-	}), options.Options,
-	)
+	}), options.Options)
+
 	if len(output) != 0 {
 		if err != nil {
 			return err
@@ -118,10 +118,21 @@ func (wrapper *PluginWrapper) command(command composeCommand, options libstack.O
 	cmd := exec.Command(program, args...)
 	cmd.Dir = options.WorkingDir
 
-	if wrapper.configPath != "" {
+	if wrapper.configPath != "" || len(options.Env) > 0 {
 		cmd.Env = os.Environ()
+	}
+
+	if wrapper.configPath != "" {
 		cmd.Env = append(cmd.Env, "DOCKER_CONFIG="+wrapper.configPath)
 	}
+
+	cmd.Env = append(cmd.Env, options.Env...)
+
+	log.Debug().
+		Str("command", program).
+		Strs("args", args).
+		Interface("env", cmd.Env).
+		Msg("run command")
 
 	cmd.Stderr = &stderr
 
@@ -159,7 +170,7 @@ func newCommand(command []string, filePaths []string) composeCommand {
 
 type upOptions struct {
 	forceRecreate        bool
-	abortOnContainerExit bool ``
+	abortOnContainerExit bool
 }
 
 func newUpCommand(filePaths []string, options upOptions) composeCommand {
