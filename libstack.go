@@ -17,7 +17,8 @@ type Options struct {
 	// EnvFilePath is the path to a .env file
 	EnvFilePath string
 	// Env is a list of environment variables to pass to the command, example: "FOO=bar"
-	Env []string
+	Env             []string
+	PotentialErrors []string
 }
 
 type DeployOptions struct {
