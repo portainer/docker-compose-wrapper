@@ -15,6 +15,9 @@ import (
 
 var (
 	MissingDockerComposePluginErr = errors.New("docker-compose plugin is missing from config path")
+
+	ErrUpdateFailure    = errors.New("update failure")
+	ErrPullImageFailure = errors.New("pull image failure")
 )
 
 // PluginWrapper provide a type for managing docker compose commands
@@ -144,6 +147,14 @@ func (wrapper *PluginWrapper) command(command composeCommand, options libstack.O
 			Str("error_output", errOutput).
 			Err(err).
 			Msg("docker compose command failed")
+
+		// Check if the special error messages show in the stdout
+		out := string(output)
+		if strings.Contains(out, ErrUpdateFailure.Error()) {
+			errOutput = ErrUpdateFailure.Error()
+		} else if strings.Contains(out, ErrPullImageFailure.Error()) {
+			errOutput = ErrPullImageFailure.Error()
+		}
 
 		return nil, errors.New(errOutput)
 	}
