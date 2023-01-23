@@ -44,8 +44,7 @@ func (wrapper *PluginWrapper) Deploy(ctx context.Context, filePaths []string, op
 			return err
 		}
 
-		log.Info().
-			Str("message", "Stack deployment successful")
+		log.Info().Msg("Stack deployment successful")
 
 		log.Debug().
 			Str("output", string(output)).
@@ -63,8 +62,7 @@ func (wrapper *PluginWrapper) Remove(ctx context.Context, filePaths []string, op
 			return err
 		}
 
-		log.Info().
-			Str("message", "Stack removal successful")
+		log.Info().Msg("Stack removal successful")
 
 		log.Debug().
 			Str("output", string(output)).
@@ -83,8 +81,7 @@ func (wrapper *PluginWrapper) Pull(ctx context.Context, filePaths []string, opti
 			return err
 		}
 
-		log.Info().
-			Str("message", "Stack pull successful")
+		log.Info().Msg("Stack pull successful")
 
 		log.Debug().
 			Str("output", string(output)).
@@ -92,6 +89,24 @@ func (wrapper *PluginWrapper) Pull(ctx context.Context, filePaths []string, opti
 	}
 
 	return err
+}
+
+// Validate stack file
+func (wrapper *PluginWrapper) Validate(ctx context.Context, filePaths []string, options libstack.Options) error {
+	output, err := wrapper.command(newValidateCommand(filePaths), options)
+	if len(output) != 0 {
+		if err != nil {
+			return err
+		}
+
+		log.Info().Msg("Valid stack format")
+
+		log.Debug().
+			Str("output", string(output)).
+			Msg("docker compose")
+	}
+
+	return nil
 }
 
 // Command execute a docker-compose command
@@ -194,6 +209,10 @@ func newDownCommand(filePaths []string) composeCommand {
 
 func newPullCommand(filePaths []string) composeCommand {
 	return newCommand([]string{"pull"}, filePaths)
+}
+
+func newValidateCommand(filePaths []string) composeCommand {
+	return newCommand([]string{"config", "--quiet"}, filePaths)
 }
 
 func (command *composeCommand) WithHost(host string) {

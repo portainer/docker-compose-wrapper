@@ -8,6 +8,7 @@ type Deployer interface {
 	Deploy(ctx context.Context, filePaths []string, options DeployOptions) error
 	Remove(ctx context.Context, filePaths []string, options Options) error
 	Pull(ctx context.Context, filePaths []string, options Options) error
+	Validate(ctx context.Context, filePaths []string, options Options) error
 }
 
 type Options struct {
