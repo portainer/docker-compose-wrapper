@@ -106,7 +106,7 @@ func (wrapper *PluginWrapper) Validate(ctx context.Context, filePaths []string, 
 			Msg("docker compose")
 	}
 
-	return nil
+	return err
 }
 
 // Command execute a docker-compose command
