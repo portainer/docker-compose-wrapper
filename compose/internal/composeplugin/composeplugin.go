@@ -204,15 +204,8 @@ func newUpCommand(filePaths []string, options upOptions) composeCommand {
 }
 
 func newDownCommand(projectName string, filePaths []string) composeCommand {
-	// if projectName is supplied, ignore file paths
-	if projectName != "" {
-		filePaths = []string{}
-	}
-
 	cmd := newCommand([]string{"down", "--remove-orphans"}, filePaths)
-	if projectName != "" {
-		cmd.WithProjectName(projectName)
-	}
+	cmd.WithProjectName(projectName)
 
 	return cmd
 }
