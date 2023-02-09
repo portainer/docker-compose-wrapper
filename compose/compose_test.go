@@ -67,7 +67,7 @@ func Test_UpAndDown(t *testing.T) {
 		t.Fatal("container should exist")
 	}
 
-	err = deployer.Remove(ctx, []string{filePathOriginal, filePathOverride}, libstack.Options{})
+	err = deployer.Remove(ctx, "", []string{filePathOriginal, filePathOverride}, libstack.Options{})
 	if err != nil {
 		t.Fatal(err)
 	}
