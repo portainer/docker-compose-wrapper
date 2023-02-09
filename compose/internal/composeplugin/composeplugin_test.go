@@ -101,7 +101,7 @@ services:
 		t.Fatal("container should exist")
 	}
 
-	err = w.Remove(ctx, []string{filePathOriginal, filePathOverride}, libstack.Options{})
+	err = w.Remove(ctx, "", []string{filePathOriginal, filePathOverride}, libstack.Options{})
 	if err != nil {
 		t.Fatal(err)
 	}
