@@ -6,7 +6,11 @@ import (
 
 type Deployer interface {
 	Deploy(ctx context.Context, filePaths []string, options DeployOptions) error
-	Remove(ctx context.Context, filePaths []string, options Options) error
+	// Remove stops and removes containers
+	//
+	// projectName or filePaths are required
+	// if projectName is supplied filePaths will be ignored
+	Remove(ctx context.Context, projectName string, filePaths []string, options Options) error
 	Pull(ctx context.Context, filePaths []string, options Options) error
 	Validate(ctx context.Context, filePaths []string, options Options) error
 }
