@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	libstack "github.com/portainer/docker-compose-wrapper"
+	"github.com/rs/zerolog/log"
 )
 
 type publisher struct {
@@ -32,6 +33,12 @@ type service struct {
 
 // docker container state can be one of "created", "running", "paused", "restarting", "removing", "exited", or "dead"
 func getServiceStatus(service service) (libstack.Status, string) {
+	log.Debug().
+		Str("service", service.Name).
+		Str("state", service.State).
+		Int("exitCode", service.ExitCode).
+		Msg("getServiceStatus")
+
 	switch service.State {
 	case "created", "restarting", "paused":
 		return libstack.StatusStarting, ""
@@ -51,13 +58,16 @@ func getServiceStatus(service service) (libstack.Status, string) {
 }
 
 func aggregateStatuses(services []service) (libstack.Status, string) {
-	statusCounts := make(map[libstack.Status]int)
 	servicesCount := len(services)
 
 	if servicesCount == 0 {
+		log.Debug().
+			Msg("no services found")
+
 		return libstack.StatusRemoved, ""
 	}
 
+	statusCounts := make(map[libstack.Status]int)
 	errorMessage := ""
 	for _, service := range services {
 		status, serviceError := getServiceStatus(service)
@@ -66,6 +76,11 @@ func aggregateStatuses(services []service) (libstack.Status, string) {
 		}
 		statusCounts[status]++
 	}
+
+	log.Debug().
+		Interface("statusCounts", statusCounts).
+		Str("errorMessage", errorMessage).
+		Msg("check_status")
 
 	switch {
 	case errorMessage != "":
